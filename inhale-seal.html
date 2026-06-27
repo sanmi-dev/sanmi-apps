@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>吸入指導シール</title>
+<link rel="icon" href="https://raw.githubusercontent.com/hidepon518-afk/sheet-app/main/inhale-icon.png">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/hidepon518-afk/sheet-app/main/inhale-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'M PLUS 1p','Noto Sans JP',sans-serif;background:#f7f9fb;color:#333}
+#app{max-width:480px;margin:0 auto;min-height:100vh}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 12px;background:#1e3a4f;color:#e8f0f4}
+header h1{font-size:18px;font-weight:700;letter-spacing:1px}
+header p{font-size:10px;margin-top:3px;color:#8bb8d0}
+.settings-btn{background:transparent;border:1.5px solid #8bb8d0;color:#8bb8d0;border-radius:8px;padding:6px 10px;font-size:18px;cursor:pointer}
+.form-wrap{padding:12px 16px 80px}
+.section{background:#fff;border-radius:10px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.section-label{display:block;font-size:12px;font-weight:700;color:#1e3a4f;margin-bottom:8px;letter-spacing:.5px}
+.label{display:block;font-size:11px;font-weight:600;color:#555;margin-bottom:4px;margin-top:6px}
+input,select,textarea{width:100%;padding:8px 10px;border:1.5px solid #d0d8df;border-radius:7px;font-size:14px;background:#fafbfc;outline:none;font-family:inherit}
+textarea{resize:vertical}
+.row{display:flex;gap:10px}
+.half{flex:1}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:#e3edf4;color:#1e3a4f}
+.badge-green{background:#e8f5e9;color:#2e7d32}
+.drug-info{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.toggle-btn{padding:7px 14px;border:1.5px solid #d0d8df;border-radius:7px;background:#fff;font-size:13px;cursor:pointer;font-weight:600;color:#555;font-family:inherit}
+.toggle-btn.active{background:#1e3a4f;color:#fff;border-color:#1e3a4f}
+.eval-btn{flex:1;padding:8px 4px;border:2px solid;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;font-family:inherit;transition:all .15s}
+.eval-btn .mark{font-size:18px;font-weight:700}
+.eval-btn .desc{font-size:10px}
+.check-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f2f4}
+.check-row span{font-size:13px;flex:1}
+.mini-btn{padding:4px 10px;border-radius:5px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+.mini-btn.good{background:#2e7d32;color:#fff}
+.mini-btn.warn{background:#c62828;color:#fff}
+.mini-btn.off{background:#eee;color:#555}
+.chip-btn{padding:5px 12px;border-radius:16px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;background:#eef2f5;color:#333}
+.chip-btn.active{background:#2c5f7c;color:#fff}
+.print-btn{width:100%;padding:14px;background:#1e3a4f;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:1px;margin-top:4px}
+.preview-btn{width:100%;padding:10px;background:transparent;color:#1e3a4f;border:1.5px solid #1e3a4f;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:6px}
+.back-btn{padding:8px 16px;background:transparent;color:#1e3a4f;border:1.5px solid #1e3a4f;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:600}
+.show-all-link{margin-top:6px;background:none;border:none;color:#2c5f7c;font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:420px;max-height:85vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:14px;color:#1e3a4f}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;position:sticky;bottom:0;background:#fff;padding-top:8px}
+.cancel-btn{padding:8px 18px;border:1.5px solid #ccc;border-radius:8px;background:transparent;font-size:13px;cursor:pointer;font-family:inherit}
+.save-btn{padding:8px 22px;border:none;border-radius:8px;background:#1e3a4f;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:#e3edf4;border-radius:14px;font-size:12px;font-weight:500;color:#1e3a4f}
+.tag button{background:none;border:none;color:#999;cursor:pointer;font-size:13px;padding:0 2px}
+.add-row{display:flex;gap:6px}
+.add-btn{padding:8px 14px;background:#1e3a4f;color:#fff;border:none;border-radius:7px;font-size:13px;cursor:pointer;font-weight:600;font-family:inherit;white-space:nowrap}
+.tab-row{display:flex;gap:4px;margin-bottom:12px}
+.tab-row .toggle-btn{flex:1}
+.drug-pick-btn{padding:3px 8px;border-radius:5px;border:1px solid #d0d8df;font-size:11px;cursor:pointer;font-family:inherit;background:#fff;color:#555}
+.drug-pick-btn.active{background:#1e3a4f;color:#fff}
+.toggle-switch{width:40px;height:22px;border-radius:11px;border:none;cursor:pointer;position:relative;transition:background .2s}
+.toggle-switch .knob{position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s}
+.hint{font-size:10px;color:#888;margin-top:4px}
+#print-area{display:none}
+@media print{
+  body *{visibility:hidden!important}
+  #print-area,#print-area *{visibility:visible!important}
+  #print-area{display:block!important;position:absolute;left:0;top:0;margin:0;padding:0}
+  @page{margin:0;size:auto}
+}
+.rpt-th{border:1px solid #ccc;padding:5px 8px;background:#eef2f5;font-weight:700;font-size:9px;color:#333}
+.rpt-td{border:1px solid #ccc;padding:5px 8px;font-size:10px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="background:#fff;border-radius:8px;padding:4px 8px;display:inline-flex;align-items:center">
+        <svg width="62" height="30" viewBox="0 0 66 34" xmlns="http://www.w3.org/2000/svg" aria-label="SanmiG">
+          <path d="M27 8 C22 3 14 3 11 8 C16 9 22 9 27 8 Z" fill="#7cb342"/>
+          <path d="M30 8 C35 2 44 3 47 9 C41 10 35 10 30 8 Z" fill="#43a047"/>
+          <path d="M28.5 9 L28.5 4" stroke="#558b2f" stroke-width="1.2" stroke-linecap="round"/>
+          <text x="2" y="28" font-family="'M PLUS 1p',sans-serif" font-size="17" font-weight="700">
+            <tspan fill="#2e7d32">Sanmi</tspan><tspan fill="#66bb6a">G</tspan>
+          </text>
+        </svg>
+      </span>
+      <div><h1>吸入指導シール <span style="font-size:11px;font-weight:400;color:#8bb8d0">v1.9</span></h1><p>令和8年度改定対応（30点・6か月に1回）</p></div>
+    </div>
+    <button class="settings-btn" onclick="openSettings()">⚙</button>
+  </header>
+  <div class="form-wrap" id="input-page">
+    <!-- Drug Selection -->
+    <div class="section">
+      <label class="section-label">薬剤名</label>
+      <select id="drug-select" onchange="onDrugChange()"><option value="">-- 薬剤を選択 --</option></select>
+      <button class="show-all-link hidden" id="show-all-btn" onclick="toggleShowAll()"></button>
+      <div class="drug-info hidden" id="drug-info"></div>
+    </div>
+    <div id="form-body" class="hidden">
+      <!-- Basic Info -->
+      <div class="section">
+        <div class="row">
+          <div class="half"><label class="label">実施日</label><input type="date" id="date-input"></div>
+          <div class="half"><label class="label">薬剤師</label><select id="pharmacist-select"><option value="">選択</option></select></div>
+        </div>
+      </div>
+      <!-- Evaluation -->
+      <div class="section">
+        <label class="section-label">吸入手技評価</label>
+        <div style="display:flex;gap:6px" id="eval-btns"></div>
+      </div>
+      <!-- Checks -->
+      <div class="section">
+        <label class="section-label" id="checks-label">手技チェック</label>
+        <div id="checks-body"></div>
+      </div>
+      <!-- Focus -->
+      <div class="section">
+        <label class="section-label">重点指導項目</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="focus-btns"></div>
+      </div>
+      <!-- Notes -->
+      <div class="section">
+        <label class="section-label">連絡事項</label>
+        <textarea rows="2" id="notes-input" placeholder="自由記入"></textarea>
+      </div>
+      <!-- Output Options -->
+      <div class="section">
+        <label class="section-label">出力</label>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <button class="toggle-btn active" style="flex:1" onclick="setOutputMode('label')" id="mode-label">手帳シール</button>
+          <button class="toggle-btn" style="flex:1" onclick="setOutputMode('report')" id="mode-report">報告書(A4)</button>
+        </div>
+        <div class="hidden" id="report-fields">
+          <div class="row">
+            <div class="half"><label class="label">患者名</label><input type="text" id="patient-input" placeholder="空欄で手書き用下線"></div>
+            <div class="half"><label class="label">処方医</label><select id="doctor-select"><option value="">選択</option></select></div>
+          </div>
+        </div>
+        <button class="print-btn" id="print-btn" onclick="doPrint()">🖨 シール印刷</button>
+        <button class="preview-btn" onclick="showPreview()">プレビュー</button>
+        <p style="font-size:11px;color:#c0392b;margin-top:10px;padding:8px;background:#fdf2f2;border-radius:6px;border:1px solid #f5c6cb">※ 写しまたは要点を薬歴に残すこと</p>
+      </div>
+    </div>
+  </div>
+  <div class="form-wrap hidden" id="preview-page">
+    <button class="back-btn" onclick="backToInput()">← 入力に戻る</button>
+    <div style="display:flex;justify-content:center;margin-top:12px"><button class="print-btn" onclick="applyPageSize();triggerPrint();">🖨 印刷</button></div>
+    <div style="margin-top:16px;display:flex;justify-content:center"><div id="preview-box" style="border:1px dashed #aaa;padding:4px;background:#fff"></div></div>
+  </div>
+</div>
+<!-- Settings Modal -->
+<div class="overlay hidden" id="settings-overlay">
+  <div class="modal">
+    <h2>⚙ 設定</h2>
+    <p style="font-size:12px;color:#1e3a4f;margin-bottom:12px;padding:8px;background:#e3edf4;border-radius:6px">薬局名・薬剤師名などを初期設定してください</p>
+    <div class="tab-row">
+      <button class="toggle-btn active" id="tab-basic" onclick="switchTab('basic')">基本設定</button>
+      <button class="toggle-btn" id="tab-drugs" onclick="switchTab('drugs')">採用薬リスト</button>
+    </div>
+    <div id="settings-basic">
+      <label class="label">薬局名</label>
+      <input id="s-pharmacy" placeholder="○○薬局">
+      <label class="label">薬剤師名</label>
+      <div class="tag-list" id="s-pharm-tags"></div>
+      <div class="add-row"><input id="s-pharm-input" style="flex:1" placeholder="薬剤師名を入力"><button class="add-btn" onclick="addPharmacist()">追加</button></div>
+      <label class="label">連携医師（報告書用）</label>
+      <div class="tag-list" id="s-doc-tags"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:6px"><input id="s-doc-input" style="flex:2;min-width:100px" placeholder="医師名"><input id="s-doc-hospital" style="flex:3;min-width:120px" placeholder="医療機関名"><button class="add-btn" onclick="addDoctor()">追加</button></div>
+      <label class="label">医師への敬称（報告書用）</label>
+      <select id="s-doc-keisho">
+        <option value="御机下">御机下</option>
+        <option value="御侍史">御侍史</option>
+        <option value="">表示なし</option>
+      </select>
+      <label class="label">ラベル幅</label>
+      <select id="s-label-width">
+        <option value="89">90mm幅（89mm印刷）</option>
+        <option value="58">62mm幅（58mm印刷）</option>
+        <option value="96">100mm幅（96mm印刷）</option>
+      </select>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+        <button class="toggle-switch" id="s-show-info-btn" onclick="toggleShowInfo()" style="background:#1e3a4f"><span class="knob" id="s-show-info-knob" style="left:20px"></span></button>
+        <span style="font-size:12px">シールに薬局名・薬剤師名を表示</span>
+      </div>
+      <p class="hint">OFFにしても調剤シールから確認できるため算定上問題ありません</p>
+    </div>
+    <div id="settings-drugs" class="hidden"></div>
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeSettings()">キャンセル</button>
+      <button class="save-btn" onclick="saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+<!-- Hidden print area -->
+<div id="print-area"></div>
+
+<script>
+const DRUGS=[
+{name:"レルベア",device:"エリプタ",type:"DPI",category:"ICS/LABA",disease:["喘息","COPD"],hasICS:true},
+{name:"テリルジー",device:"エリプタ",type:"DPI",category:"ICS/LABA/LAMA",disease:["喘息","COPD"],hasICS:true},
+{name:"アニュイティ",device:"エリプタ",type:"DPI",category:"ICS",disease:["喘息"],hasICS:true},
+{name:"エンクラッセ",device:"エリプタ",type:"DPI",category:"LAMA",disease:["COPD"],hasICS:false},
+{name:"アノーロ",device:"エリプタ",type:"DPI",category:"LAMA/LABA",disease:["COPD"],hasICS:false},
+{name:"シムビコート",device:"タービュヘイラー",type:"DPI",category:"ICS/LABA",disease:["喘息","COPD"],hasICS:true},
+{name:"ブデホル「JG」",device:"タービュヘイラー",type:"DPI",category:"ICS/LABA",disease:["喘息","COPD"],hasICS:true},
+{name:"ブデホル「MYL」",device:"タービュヘイラー",type:"DPI",category:"ICS/LABA",disease:["喘息","COPD"],hasICS:true},
+{name:"ブデホル「ニプロ」",device:"タービュヘイラー",type:"DPI",category:"ICS/LABA",disease:["喘息","COPD"],hasICS:true},
+{name:"パルミコート",device:"タービュヘイラー",type:"DPI",category:"ICS",disease:["喘息"],hasICS:true},
+{name:"オーキシス",device:"タービュヘイラー",type:"DPI",category:"LABA",disease:["COPD"],hasICS:false},
+{name:"フルタイド ディスカス",device:"ディスカス",type:"DPI",category:"ICS",disease:["喘息"],hasICS:true},
+{name:"アドエア ディスカス",device:"ディスカス",type:"DPI",category:"ICS/LABA",disease:["喘息","COPD"],hasICS:true},
+{name:"セレベント ディスカス",device:"ディスカス",type:"LABA",disease:["喘息","COPD"],hasICS:false},
+{name:"アズマネックス",device:"ツイストヘラー",type:"DPI",category:"ICS",disease:["喘息"],hasICS:true},
+{name:"オンブレス",device:"ブリーズヘラー",type:"DPI",category:"LABA",disease:["COPD"],hasICS:false},
+{name:"シーブリ",device:"ブリーズヘラー",type:"DPI",category:"LAMA",disease:["COPD"],hasICS:false},
+{name:"ウルティブロ",device:"ブリーズヘラー",type:"DPI",category:"LAMA/LABA",disease:["COPD"],hasICS:false},
+{name:"アテキュラ",device:"ブリーズヘラー",type:"DPI",category:"ICS/LABA",disease:["喘息"],hasICS:true},
+{name:"エナジア",device:"ブリーズヘラー",type:"DPI",category:"ICS/LABA/LAMA",disease:["喘息"],hasICS:true},
+{name:"エクリラ",device:"ジェヌエア",type:"DPI",category:"LAMA",disease:["COPD"],hasICS:false},
+{name:"メプチンスイングヘラー",device:"スイングヘラー",type:"DPI",category:"SABA",disease:["喘息","COPD"],hasICS:false},
+{name:"フルタイド エアゾール",device:"エアゾール",type:"pMDI",category:"ICS",disease:["喘息"],hasICS:true},
+{name:"アドエア エアゾール",device:"エアゾール",type:"pMDI",category:"ICS/LABA",disease:["喘息","COPD"],hasICS:true},
+{name:"フルティフォーム",device:"エアゾール",type:"pMDI",category:"ICS/LABA",disease:["喘息"],hasICS:true},
+{name:"オルベスコ",device:"エアゾール",type:"pMDI",category:"ICS",disease:["喘息"],hasICS:true},
+{name:"キュバール",device:"エアゾール",type:"pMDI",category:"ICS",disease:["喘息"],hasICS:true},
+{name:"サルタノール",device:"エアゾール",type:"pMDI",category:"SABA",disease:["喘息","COPD"],hasICS:false},
+{name:"メプチンエアー",device:"エアゾール",type:"pMDI",category:"SABA",disease:["喘息","COPD"],hasICS:false},
+{name:"ベロテック",device:"エアゾール",type:"pMDI",category:"SABA",disease:["COPD"],hasICS:false},
+{name:"ビレーズトリ",device:"エアロスフィア",type:"pMDI",category:"ICS/LABA/LAMA",disease:["喘息","COPD"],hasICS:true},
+{name:"スピリーバ レスピマット",device:"レスピマット",type:"SMI",category:"LAMA",disease:["喘息","COPD"],hasICS:false},
+{name:"スピオルト レスピマット",device:"レスピマット",type:"SMI",category:"LAMA/LABA",disease:["COPD"],hasICS:false},
+{name:"イナビル吸入粉末剤",device:"専用容器",type:"DPI",category:"抗インフルエンザ",disease:["インフルエンザ"],hasICS:false},
+{name:"イナビル吸入懸濁用",device:"ネブライザー",type:"ネブライザー",category:"抗インフルエンザ",disease:["インフルエンザ"],hasICS:false},
+{name:"リレンザ",device:"ディスクハラー",type:"DPI",category:"抗インフルエンザ",disease:["インフルエンザ"],hasICS:false},
+];
+const COMMON_CHECKS=["吸入前の息吐き（残気排出）","息止め 3〜5秒以上"];
+const GARGLE="うがい実施";
+const DEVICE_CHECKS={
+"DPI共通":["薬剤セット操作","速く深い吸入","デバイスの正しい保持"],
+"エリプタ":["カバー開閉でセット完了の理解"],
+"タービュヘイラー":["底部の回転操作（右→左カチッ）"],
+"ディスカス":["レバー操作"],
+"ブリーズヘラー":["カプセル装填","カラカラ音の確認"],
+"ツイストヘラー":["キャップ回し開け"],
+"ジェヌエア":["窓の色変化確認（緑→赤）"],
+"スイングヘラー":["操作ボタン押し下げ"],
+"pMDI共通":["噴射と吸入の同調","ゆっくり深く吸入","よく振る（使用前）","スペーサー使用有無"],
+"エアロスフィア":["週1回水洗浄の説明"],
+"レスピマット":["カートリッジ装着（初回）","透明ケースの回転操作","噴霧ボタンと吸入の同調"],
+"専用容器":["スライド操作（①→②順）","容器を立ててトントン","看視下吸入実施"],
+"ネブライザー":["生食での懸濁","ジェット式ネブライザー使用","看視下吸入実施"],
+"ディスクハラー":["ブリスターの穿刺（専用針の操作）","トレイの引き出し・押し込み","水平に保持して深く吸入"],
+};
+const FOCUS_OPTIONS=["息止め3秒以上","うがい必須","吸入力確認","スペーサー検討","デバイス変更検討","残量確認方法","保管方法"];
+const TYPE_LABELS={DPI:"DPI（ドライパウダー）",pMDI:"pMDI（加圧噴霧式）",SMI:"SMI（ソフトミスト）","ネブライザー":"ネブライザー"};
+
+function getChecks(drug){
+  if(!drug)return[];
+  const c=[...COMMON_CHECKS];
+  if(drug.hasICS)c.push(GARGLE);
+  if(drug.type==="DPI"&&drug.device!=="専用容器")c.push(...(DEVICE_CHECKS["DPI共通"]||[]));
+  if(drug.type==="pMDI")c.push(...(DEVICE_CHECKS["pMDI共通"]||[]));
+  c.push(...(DEVICE_CHECKS[drug.device]||[]));
+  return c;
+}
+function isInfluenza(d){return d&&d.disease.includes("インフルエンザ")}
+function todayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// ── State ──
+let settings={pharmacyName:"",pharmacists:[],doctors:[],docKeisho:"御机下",labelWidth:89,paperWidth:90,paperHeight:200,myDrugs:[],showLabelInfo:true};
+let tempSettings={};
+let selectedDrug=null;
+let evaluation="";
+let checkStates={};
+let focusItems=[];
+let outputMode="label";
+let showAllDrugs=false;
+let isSupervised=true;
+
+// ── Init ──
+function init(){
+  try{const s=localStorage.getItem("inhale_settings");if(s)settings={...settings,...JSON.parse(s)}}catch{}
+  document.getElementById('date-input').value=todayStr();
+  buildDrugSelect();
+  buildEvalBtns();
+  buildFocusBtns();
+  updatePharmacistSelect();
+  document.getElementById('s-pharm-input').addEventListener('keydown',e=>{if(e.key==='Enter')addPharmacist()});
+  document.getElementById('s-doc-input').addEventListener('keydown',e=>{if(e.key==='Enter')addDoctor()});
+}
+
+// ── Drug Select ──
+function buildDrugSelect(){
+  const sel=document.getElementById('drug-select');
+  const hasMyDrugs=settings.myDrugs&&settings.myDrugs.length>0;
+  const visible=(!hasMyDrugs||showAllDrugs)?DRUGS:DRUGS.filter(d=>settings.myDrugs.includes(d.name));
+  const grouped={};
+  visible.forEach(d=>{
+    if(!grouped[d.type])grouped[d.type]={};
+    if(!grouped[d.type][d.device])grouped[d.type][d.device]=[];
+    grouped[d.type][d.device].push(d);
+  });
+  sel.innerHTML='<option value="">-- 薬剤を選択 --</option>';
+  for(const[type,devices]of Object.entries(grouped)){
+    const og=document.createElement('optgroup');
+    og.label=TYPE_LABELS[type]||type;
+    for(const[device,drugs]of Object.entries(devices)){
+      drugs.forEach(d=>{
+        const o=document.createElement('option');
+        o.value=d.name;o.textContent=`${d.name}（${device}）`;
+        og.appendChild(o);
+      });
+    }
+    sel.appendChild(og);
+  }
+  const btn=document.getElementById('show-all-btn');
+  if(hasMyDrugs){
+    btn.classList.remove('hidden');
+    btn.textContent=showAllDrugs?'採用薬のみ表示':`全${DRUGS.length}薬剤を表示`;
+  }else{btn.classList.add('hidden')}
+}
+
+function toggleShowAll(){showAllDrugs=!showAllDrugs;buildDrugSelect()}
+
+function onDrugChange(){
+  const name=document.getElementById('drug-select').value;
+  selectedDrug=DRUGS.find(d=>d.name===name)||null;
+  const info=document.getElementById('drug-info');
+  const body=document.getElementById('form-body');
+  if(!selectedDrug){info.classList.add('hidden');body.classList.add('hidden');return}
+  info.classList.remove('hidden');
+  info.innerHTML=`<span class="badge">${esc(selectedDrug.type)}</span><span class="badge">${esc(selectedDrug.device)}</span><span class="badge badge-green">${esc(selectedDrug.category)}</span>`;
+  body.classList.remove('hidden');
+  evaluation="◎";checkStates={};isSupervised=true;
+  const checks=getChecks(selectedDrug);
+  checks.forEach(c=>{checkStates[c]="良"});
+  buildEvalBtns();buildChecks();buildFocusBtns();
+}
+
+// ── Evaluation ──
+const EVALS=[{v:"◎",l:"問題なし",c:"#2e7d32"},{v:"○",l:"概ね良好",c:"#1565c0"},{v:"△",l:"再指導要",c:"#e65100"},{v:"×",l:"要改善",c:"#c62828"}];
+function buildEvalBtns(){
+  const box=document.getElementById('eval-btns');box.innerHTML='';
+  EVALS.forEach(ev=>{
+    const b=document.createElement('button');
+    b.className='eval-btn';
+    b.style.borderColor=ev.c;
+    b.style.background=evaluation===ev.v?ev.c:'transparent';
+    b.style.color=evaluation===ev.v?'#fff':ev.c;
+    b.innerHTML=`<span class="mark">${ev.v}</span><span class="desc">${ev.l}</span>`;
+    b.onclick=()=>{evaluation=ev.v;buildEvalBtns()};
+    box.appendChild(b);
+  });
+}
+
+// ── Checks ──
+function buildChecks(){
+  if(!selectedDrug)return;
+  const checks=getChecks(selectedDrug);
+  document.getElementById('checks-label').textContent=`手技チェック（${selectedDrug.device}）`;
+  const box=document.getElementById('checks-body');box.innerHTML='';
+  checks.forEach(c=>{
+    const row=document.createElement('div');row.className='check-row';
+    const sp=document.createElement('span');sp.textContent=c;
+    const btns=document.createElement('div');btns.style.display='flex';btns.style.gap='4px';
+    ["良","要確認"].forEach(st=>{
+      const b=document.createElement('button');
+      b.className='mini-btn '+(checkStates[c]===st?(st==="良"?'good':'warn'):'off');
+      b.textContent=st;
+      b.onclick=()=>{checkStates[c]=st;buildChecks()};
+      btns.appendChild(b);
+    });
+    row.appendChild(sp);row.appendChild(btns);box.appendChild(row);
+  });
+  if(isInfluenza(selectedDrug)){
+    const sup=document.createElement('div');
+    sup.className='check-row';
+    sup.style.cssText='margin-top:10px;padding:8px;background:#fdf2f2;border-radius:6px;border:1px solid #f5c6cb';
+    const lbl=document.createElement('label');
+    lbl.style.cssText='display:flex;align-items:center;gap:8px;cursor:pointer;width:100%;font-size:12px;font-weight:bold;color:#c0392b';
+    const cb=document.createElement('input');
+    cb.type='checkbox';cb.checked=isSupervised;cb.style.cssText='width:16px;height:16px';
+    cb.onchange=()=>{isSupervised=cb.checked};
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode('薬局内での「看視下吸入」を実施した'));
+    sup.appendChild(lbl);
+    box.appendChild(sup);
+  }
+}
+
+// ── Focus ──
+function buildFocusBtns(){
+  const box=document.getElementById('focus-btns');box.innerHTML='';
+  FOCUS_OPTIONS.forEach(item=>{
+    const b=document.createElement('button');
+    b.className='chip-btn'+(focusItems.includes(item)?' active':'');
+    b.textContent=item;
+    b.onclick=()=>{
+      if(focusItems.includes(item))focusItems=focusItems.filter(f=>f!==item);
+      else focusItems.push(item);
+      buildFocusBtns();
+    };
+    box.appendChild(b);
+  });
+}
+
+// ── Output Mode ──
+function setOutputMode(mode){
+  outputMode=mode;
+  document.getElementById('mode-label').className='toggle-btn'+(mode==='label'?' active':'');
+  document.getElementById('mode-report').className='toggle-btn'+(mode==='report'?' active':'');
+  document.getElementById('report-fields').classList.toggle('hidden',mode!=='report');
+  document.getElementById('print-btn').textContent=mode==='label'?'🖨 シール印刷':'🖨 報告書印刷';
+  if(mode==='report')updateDoctorSelect();
+}
+
+function updatePharmacistSelect(){
+  const sel=document.getElementById('pharmacist-select');
+  sel.innerHTML='<option value="">選択</option>';
+  settings.pharmacists.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o)});
+  if(settings.pharmacists.length>0)sel.value=settings.pharmacists[0];
+}
+function updateDoctorSelect(){
+  const sel=document.getElementById('doctor-select');
+  sel.innerHTML='<option value="">選択</option>';
+  settings.doctors.forEach(d=>{
+    const name=typeof d==='object'?d.name:d;
+    const hosp=typeof d==='object'&&d.hospital?` (${d.hospital})`:'';
+    const o=document.createElement('option');o.value=name;o.textContent=name+hosp;sel.appendChild(o);
+  });
+}
+
+function gatherData(){
+  const checks=selectedDrug?getChecks(selectedDrug):[];
+  const docVal=document.getElementById('doctor-select').value;
+  const docObj=settings.doctors.find(d=>(typeof d==='object'?d.name:d)===docVal);
+  return{
+    drug:selectedDrug,
+    date:document.getElementById('date-input').value,
+    pharmacist:document.getElementById('pharmacist-select').value,
+    doctorName:docVal,
+    doctorHospital:docObj&&typeof docObj==='object'?docObj.hospital:'',
+    patient:document.getElementById('patient-input').value,
+    evaluation,
+    checks:checks.map(c=>({label:c,status:checkStates[c]||"良"})),
+    focusItems:[...focusItems],
+    notes:document.getElementById('notes-input').value,
+    isSupervised,
+  };
+}
+
+function getEvalSvg(v, isSelected, size = 14) {
+  const strokeColor = isSelected ? "#ffffff" : "#000000";
+  if (v === "◎") {
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="3.5" style="display:block;margin:auto;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="5"></circle></svg>`;
+  }
+  if (v === "○") {
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="3.5" style="display:block;margin:auto;"><circle cx="12" cy="12" r="10"></circle></svg>`;
+  }
+  if (v === "△") {
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="3.5" style="display:block;margin:auto;"><polygon points="12 3 3 20 21 20"></polygon></svg>`;
+  }
+  if (v === "×") {
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:auto;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+  }
+  return "";
+}
+
+function renderLabel(data){
+  const d=data.drug;if(!d)return'';
+  const w=settings.labelWidth;
+  const narrow=w<=60;
+  const fs='16px';
+  const ts='16px';
+  const ss='16px';
+  const ds='12px';
+  let h=`<div style="width:${w}mm;padding:${narrow?'2mm':'2.5mm'};font-family:'Noto Sans JP',sans-serif;font-size:${fs};line-height:1.45;color:#1a1a1a;box-sizing:border-box">`;
+  h+=`<div style="text-align:center;font-weight:700;font-size:${ts};border-bottom:1.5px solid #1a1a1a;padding-bottom:1.5mm;margin-bottom:2mm;letter-spacing:1px">吸入指導記録</div>`;
+  h+=`<div style="margin-bottom:1.5mm;font-size:${ds}">${esc((data.date||todayStr()).replace(/-/g,'/'))}</div>`;
+  h+=`<div style="background:#f0f4f7;padding:1.5mm 2mm;margin-bottom:1.5mm;font-size:${fs}"><strong>${esc(d.name)}</strong><span style="font-size:${ss};margin-left:2mm;color:#555">(${esc(d.device)}/${esc(d.category)})</span></div>`;
+  
+  h+=`<div style="display:flex;align-items:center;gap:2mm;margin-bottom:2mm;font-size:${fs}"><span>手技評価：</span>`;
+  const selSize = narrow ? 13 : 16;
+  if(data.evaluation){
+    h+=`<span style="display:inline-flex;align-items:center;justify-content:center;width:${narrow?'5mm':'6mm'};height:${narrow?'5mm':'6mm'}">${getEvalSvg(data.evaluation, false, selSize)}</span>`;
+    const evalText={"◎":"問題なし","○":"概ね良好","△":"再指導要","×":"要改善"};
+    h+=`<span style="font-size:${ss}">${esc(evalText[data.evaluation]||'')}</span>`;
+  }
+  h+=`</div>`;
+  
+  h+=`<div style="border-top:.5px dashed #999;padding-top:1.5mm;margin-bottom:1.5mm">`;
+  h+=`<table style="width:100%;border-collapse:collapse;font-size:${ss};line-height:1.4;text-align:left;table-layout:fixed">`;
+  h+=`<thead><tr style="border-bottom:.5px solid #000">`;
+  h+=`<th style="font-weight:700;padding-bottom:1mm;font-size:${ss};width:45%">${esc("手技チェック")}</th>`;
+  h+=`<th style="font-weight:700;text-align:center;width:15%;padding-bottom:1mm;font-size:${ss}">${esc("問題なし")}</th>`;
+  h+=`<th style="font-weight:700;text-align:center;width:15%;padding-bottom:1mm;font-size:${ss}">${esc("要確認")}</th>`;
+  h+=`<th style="font-weight:700;text-align:center;width:25%;padding-bottom:1mm;font-size:${ss}">${esc("メモ")}</th>`;
+  h+=`</tr></thead>`;
+  h+=`<tbody>`;
+  data.checks.forEach(c=>{
+    const isGood = c.status === "良";
+    const goodMark = isGood ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin:auto;"><polyline points="20 6 9 17 4 12"></polyline></svg>` : "";
+    const warnMark = !isGood ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin:auto;"><polygon points="12 3 3 20 21 20"></polygon></svg>` : "";
+    
+    h+=`<tr style="border-bottom:.3px solid #ccc">`;
+    h+=`<td style="padding:1.4mm 0;font-size:${ss};word-break:break-all">${esc(c.label)}</td>`;
+    h+=`<td style="text-align:center;padding:1.4mm 0">${goodMark}</td>`;
+    h+=`<td style="text-align:center;padding:1.4mm 0">${warnMark}</td>`;
+    h+=`<td style="border-left:.5px solid #000;background:#fff;padding:1.4mm 0"></td>`;
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  
+  if(isInfluenza(d)&&data.isSupervised)h+=`<div style="border:1.5px solid #000000;padding:1mm 2mm;font-size:${ss};font-weight:700;margin-bottom:1.5mm;background:#fff">☑ 看視下吸入実施</div>`;
+  if(data.focusItems.length>0)h+=`<div style="font-size:${ss};margin-bottom:1.5mm"><strong>重点指導：</strong>${esc(data.focusItems.join(' / '))}</div>`;
+  if(data.notes)h+=`<div style="font-size:${ss};margin-bottom:1.5mm"><strong>連絡：</strong>${esc(data.notes)}</div>`;
+  
+  if(settings.showLabelInfo!==false){
+    h+=`<div style="border-top:1px solid #000;padding-top:1.5mm;display:flex;flex-wrap:wrap;gap:1mm 3mm;font-size:18px;font-weight:700;color:#000">`;
+    if(settings.pharmacyName)h+=`<span>${esc(settings.pharmacyName)}</span>`;
+    if(data.pharmacist)h+=`<span>薬剤師：${esc(data.pharmacist)}</span>`;
+    h+=`</div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+function renderReport(data){
+  const d=data.drug;if(!d)return'';
+  const parsed=data.date?new Date(data.date):new Date();
+  const valid=!isNaN(parsed.getTime());
+  const base=valid?parsed:new Date();
+  const reki=`令和${base.getFullYear()-2018}年${base.getMonth()+1}月${base.getDate()}日`;
+  const dateStr=data.date||todayStr();
+  const keisho=settings.docKeisho||'';
+  const keishoStr=keisho?` ${keisho}`:'';
+  const patientDisp=data.patient?`${esc(data.patient)} 様`:'<span style="display:inline-block;width:80mm;border-bottom:1px solid #333">&nbsp;</span> 様';
+  const doctorDisp=data.doctorName?`${data.doctorHospital?esc(data.doctorHospital)+'　':''}${esc(data.doctorName)} 先生${esc(keishoStr)}`:'';
+  let h=`<div style="width:210mm;padding:15mm 15mm 10mm;font-family:'Noto Sans JP',sans-serif;font-size:11px;line-height:1.6;color:#1a1a1a">`;
+  // タイトル
+  h+=`<h2 style="text-align:center;font-size:16px;border-bottom:2px solid #1a1a1a;padding-bottom:6px;margin-bottom:14px;letter-spacing:3px">吸入指導結果報告書</h2>`;
+  // 患者名（左）＋ 宛先（右）
+  h+=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;font-size:12px">`;
+  h+=`<div>患者名：${patientDisp}</div>`;
+  if(doctorDisp)h+=`<div style="text-align:right">${doctorDisp}</div>`;
+  h+=`</div>`;
+  // 実施日・薬剤名
+  h+=`<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px"><tbody>`;
+  h+=`<tr><td class="rpt-th" style="width:15%">実施日</td><td class="rpt-td">${esc(dateStr)}</td></tr>`;
+  h+=`<tr><td class="rpt-th">薬剤名</td><td class="rpt-td">${esc(d.name)}（${esc(d.device)} / ${esc(d.type)}）〔${esc(d.category)}〕</td></tr>`;
+  h+=`</tbody></table>`;
+  // 手技評価
+  const evalLabels={"◎":"◎ 問題なし","○":"○ 概ね良好","△":"△ 再指導要","×":"× 要改善"};
+  h+=`<h3 style="font-size:12px;margin-top:14px;margin-bottom:6px;border-left:3px solid #2c5f7c;padding-left:6px">吸入手技評価</h3><p style="margin-bottom:8px;font-size:11px">${evalLabels[data.evaluation]||''}</p>`;
+  // チェック表
+  h+=`<h3 style="font-size:12px;margin-top:14px;margin-bottom:6px;border-left:3px solid #2c5f7c;padding-left:6px">手技チェック結果</h3>`;
+  h+=`<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr><th class="rpt-th" style="width:70%">項目</th><th class="rpt-th">良</th><th class="rpt-th">要確認</th></tr></thead><tbody>`;
+  data.checks.forEach(c=>{
+    h+=`<tr><td class="rpt-td">${esc(c.label)}</td><td class="rpt-td" style="text-align:center">${c.status==="良"?"✓":""}</td><td class="rpt-td" style="text-align:center">${c.status==="要確認"?"✓":""}</td></tr>`;
+  });
+  h+=`</tbody></table>`;
+  // 看視下吸入
+  if(isInfluenza(d)&&data.isSupervised)h+=`<p style="margin-top:8px;font-weight:bold;border:1px solid #c0392b;padding:4px 8px;font-size:11px">☑ 看視下吸入実施（薬剤師立会いのもと吸入完了を確認）</p>`;
+  // 重点指導・連絡事項
+  h+=`<h3 style="font-size:12px;margin-top:14px;margin-bottom:6px;border-left:3px solid #2c5f7c;padding-left:6px">重点指導項目</h3><p style="font-size:11px">${data.focusItems.length>0?esc(data.focusItems.join('、')):'特になし'}</p>`;
+  h+=`<h3 style="font-size:12px;margin-top:14px;margin-bottom:6px;border-left:3px solid #2c5f7c;padding-left:6px">連絡事項</h3><p style="font-size:11px">${data.notes?esc(data.notes):'特になし'}</p>`;
+  // フッター（薬局名・薬剤師名・日付をここにまとめる）
+  h+=`<div style="margin-top:16mm;border-top:1px solid #999;padding-top:8px;display:flex;justify-content:space-between;font-size:11px">`;
+  h+=`<span>${esc(settings.pharmacyName)}</span>`;
+  h+=`<span>薬剤師：${esc(data.pharmacist)}</span>`;
+  h+=`<span>${reki}</span>`;
+  h+=`</div>`;
+  h+=`</div>`;
+  return h;
+}
+
+// ── Preview / Print ──
+function showPreview(){
+  const data=gatherData();
+  const html=outputMode==='report'?renderReport(data):renderLabel(data);
+  document.getElementById('preview-box').innerHTML=html;
+  document.getElementById('print-area').innerHTML=html;
+  document.getElementById('input-page').classList.add('hidden');
+  document.getElementById('preview-page').classList.remove('hidden');
+}
+function backToInput(){
+  document.getElementById('input-page').classList.remove('hidden');
+  document.getElementById('preview-page').classList.add('hidden');
+}
+function applyPageSize(){
+  let st=document.getElementById('dynamic-page-style');
+  if(!st){st=document.createElement('style');st.id='dynamic-page-style';document.head.appendChild(st)}
+  if(outputMode==='report'){
+    st.textContent='@media print{@page{size:A4;margin:0}}';
+  }else{
+    // ラベルプリンタ(SATO ISTP-1000S/ECO-T90S)はドライバ登録の用紙実寸と
+    // 一致するsizeをCSSから渡さないと、window.print()ルートでジョブが
+    // 無反応になる。登録用紙は90.0×200.0mmなのでその実寸を固定で渡す。
+    // (印刷内容のレイアウト幅 settings.labelWidth とは別。用紙の物理サイズ)
+    const paperW=settings.paperWidth||90;
+    const paperH=settings.paperHeight||200;
+    st.textContent=`@media print{@page{size:${paperW}mm ${paperH}mm;margin:0}}`;
+  }
+}
+
+function doPrint(){
+  const data=gatherData();
+  const html=outputMode==='report'?renderReport(data):renderLabel(data);
+  document.getElementById('print-area').innerHTML=html;
+  document.getElementById('input-page').classList.add('hidden');
+  document.getElementById('preview-page').classList.remove('hidden');
+  document.getElementById('preview-box').innerHTML=html;
+  applyPageSize();
+  triggerPrint();
+}
+
+// Wait for layout/paint (and web fonts) to complete before printing,
+// otherwise the print job can fire on an empty/half-rendered page.
+function triggerPrint(){
+  printViaIframe();
+}
+
+// 印刷専用の隔離iframeを生成し、その中で1回だけ print() を呼ぶ。
+// 本体ページの印刷状態に影響されないため、プレビュー後の2回目の
+// window.print() が無視される問題や、ラベルプリンタでの無反応を回避できる。
+function printViaIframe(){
+  const html=document.getElementById('print-area').innerHTML;
+  // @page の指定（用紙サイズ）を組み立てる
+  let pageCss;
+  if(outputMode==='report'){
+    pageCss='@page{size:A4;margin:0}';
+  }else{
+    const paperW=settings.paperWidth||90;
+    const paperH=settings.paperHeight||200;
+    pageCss=`@page{size:${paperW}mm ${paperH}mm;margin:0}`;
+  }
+  // 既存の印刷用iframeがあれば除去
+  const old=document.getElementById('print-iframe');
+  if(old)old.remove();
+  const iframe=document.createElement('iframe');
+  iframe.id='print-iframe';
+  iframe.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(iframe);
+  const doc=iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}html,body{margin:0;padding:0}${pageCss}</style>
+</head><body>${html}</body></html>`);
+  doc.close();
+  const fire=()=>{
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+  };
+  // iframe内のフォント読込完了を待つ（最大600msで打ち切り）。
+  const fonts=iframe.contentWindow.document.fonts;
+  if(fonts&&fonts.ready){
+    Promise.race([fonts.ready,new Promise(r=>setTimeout(r,600))]).then(fire).catch(fire);
+  }else{
+    setTimeout(fire,300);
+  }
+}
+
+function openSettings(){
+  tempSettings=JSON.parse(JSON.stringify(settings));
+  document.getElementById('s-pharmacy').value=tempSettings.pharmacyName;
+  document.getElementById('s-label-width').value=tempSettings.labelWidth;
+  document.getElementById('s-doc-keisho').value=tempSettings.docKeisho||'御机下';
+  updateShowInfoToggle();
+  renderPharmTags();renderDocTags();
+  switchTab('basic');
+  document.getElementById('settings-overlay').classList.remove('hidden');
+}
+function closeSettings(){document.getElementById('settings-overlay').classList.add('hidden')}
+function saveSettings(){
+  tempSettings.pharmacyName=document.getElementById('s-pharmacy').value;
+  tempSettings.labelWidth=Number(document.getElementById('s-label-width').value);
+  tempSettings.docKeisho=document.getElementById('s-doc-keisho').value;
+  settings={...tempSettings};
+  try{localStorage.setItem("inhale_settings",JSON.stringify(settings))}catch{}
+  closeSettings();
+  buildDrugSelect();updatePharmacistSelect();updateDoctorSelect();
+}
+function onClickOverlay(e){if(e.target===document.getElementById('settings-overlay'))closeSettings()}
+document.getElementById('settings-overlay').addEventListener('click',onClickOverlay);
+
+function switchTab(tab){
+  document.getElementById('tab-basic').className='toggle-btn'+(tab==='basic'?' active':'');
+  document.getElementById('tab-drugs').className='toggle-btn'+(tab==='drugs'?' active':'');
+  document.getElementById('settings-basic').classList.toggle('hidden',tab!=='basic');
+  document.getElementById('settings-drugs').classList.toggle('hidden',tab!=='drugs');
+  if(tab==='drugs')renderDrugPicker();
+}
+function toggleShowInfo(){
+  tempSettings.showLabelInfo=!tempSettings.showLabelInfo;
+  updateShowInfoToggle();
+}
+function updateShowInfoToggle(){
+  const on=tempSettings.showLabelInfo!==false;
+  document.getElementById('s-show-info-btn').style.background=on?'#1e3a4f':'#ccc';
+  document.getElementById('s-show-info-knob').style.left=on?'20px':'2px';
+}
+// Tags
+function renderPharmTags(){
+  const box=document.getElementById('s-pharm-tags');box.innerHTML='';
+  tempSettings.pharmacists.forEach((p,i)=>{
+    box.innerHTML+=`<span class="tag">${esc(p)}<button onclick="removePharmacist(${i})">×</button></span>`;
+  });
+}
+function addPharmacist(){
+  const inp=document.getElementById('s-pharm-input');
+  const v=inp.value.trim();
+  if(v&&!tempSettings.pharmacists.includes(v)){tempSettings.pharmacists.push(v);renderPharmTags()}
+  inp.value='';
+}
+function removePharmacist(i){tempSettings.pharmacists.splice(i,1);renderPharmTags()}
+function renderDocTags(){
+  const box=document.getElementById('s-doc-tags');box.innerHTML='';
+  tempSettings.doctors.forEach((d,i)=>{
+    const name=typeof d==='object'?d.name:d;
+    const hosp=typeof d==='object'&&d.hospital?` (${d.hospital})`:'';
+    box.innerHTML+=`<span class="tag">${esc(name)}${esc(hosp)}<button onclick="removeDoctor(${i})">×</button></span>`;
+  });
+}
+function addDoctor(){
+  const nameInp=document.getElementById('s-doc-input');
+  const hospInp=document.getElementById('s-doc-hospital');
+  const name=nameInp.value.trim();
+  const hospital=hospInp.value.trim();
+  if(name&&!tempSettings.doctors.some(d=>(typeof d==='object'?d.name:d)===name)){
+    tempSettings.doctors.push({name,hospital});renderDocTags();
+  }
+  nameInp.value='';hospInp.value='';
+}
+function removeDoctor(i){tempSettings.doctors.splice(i,1);renderDocTags()}
+
+function renderDrugPicker(){
+  const box=document.getElementById('settings-drugs');
+  const my=tempSettings.myDrugs||[];
+  const grouped={};
+  DRUGS.forEach(d=>{if(!grouped[d.type])grouped[d.type]=[];grouped[d.type].push(d)});
+  let h=`<div style="display:flex;gap:6px;margin-bottom:8px">
+    <button class="chip-btn" onclick="drugPickAll()">全選択</button>
+    <button class="chip-btn" onclick="drugPickClear()">全解除</button>
+    <span style="font-size:11px;color:#888;line-height:28px">${my.length}/${DRUGS.length} 採用</span></div>`;
+  h+=`<p style="font-size:11px;color:#666;margin-bottom:8px">自店舗で採用している薬剤を選択してください。選択した薬剤のみが入力画面に表示されます。未選択の場合は全薬剤が表示されます。</p>`;
+  for(const[type,drugs]of Object.entries(grouped)){
+    h+=`<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:#1e3a4f;margin-bottom:4px">${TYPE_LABELS[type]||type}</div><div style="display:flex;flex-wrap:wrap;gap:4px">`;
+    drugs.forEach(d=>{
+      const active=my.includes(d.name);
+      h+=`<button class="drug-pick-btn${active?' active':''}" onclick="drugPickToggle('${d.name.replace(/'/g,"\\'")}')">${esc(d.name)}</button>`;
+    });
+    h+=`</div></div>`;
+  }
+  box.innerHTML=h;
+}
+function drugPickToggle(name){
+  const my=tempSettings.myDrugs||[];
+  if(my.includes(name))tempSettings.myDrugs=my.filter(n=>n!==name);
+  else{tempSettings.myDrugs=[...my,name]}
+  renderDrugPicker();
+}
+function drugPickAll(){tempSettings.myDrugs=DRUGS.map(d=>d.name);renderDrugPicker()}
+function drugPickClear(){tempSettings.myDrugs=[];renderDrugPicker()}
+
+// ── Start ──
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

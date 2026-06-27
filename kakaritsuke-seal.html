@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>かかりつけ薬剤師シール</title>
+<link rel="icon" href="https://raw.githubusercontent.com/hidepon518-afk/sheet-app/main/kakaritsuke-icon.png">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/hidepon518-afk/sheet-app/main/kakaritsuke-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:#f0f4f8;color:#333;min-height:100vh}
+
+/* ── Layout ── */
+.app-header{background:#1e3a4f;color:#e8f0f4;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+.app-header h1{font-size:17px;font-weight:700;letter-spacing:.5px}
+.app-header p{font-size:10px;color:#8bb8d0;margin-top:2px}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo-box{background:#fff;border-radius:8px;padding:4px 8px;display:inline-flex;align-items:center}
+
+.main-wrap{max-width:1200px;margin:0 auto;padding:20px;display:flex;gap:24px}
+@media(max-width:900px){.main-wrap{flex-direction:column}}
+
+.panel{width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
+@media(max-width:900px){.panel{width:100%}}
+.preview-area{flex:1;display:flex;flex-direction:column;align-items:center}
+
+/* ── Cards ── */
+.card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card-title{font-size:13px;font-weight:700;color:#1e3a4f;margin-bottom:10px;padding-bottom:6px;border-bottom:1.5px solid #e2e8f0;display:flex;align-items:center;gap:6px}
+.card-title .num{background:#1e3a4f;color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+
+/* ── Form elements ── */
+.field-label{display:block;font-size:11px;font-weight:600;color:#555;margin-bottom:3px;margin-top:8px}
+.field-label:first-child{margin-top:0}
+input,select,textarea{width:100%;padding:7px 10px;border:1.5px solid #d0d8df;border-radius:6px;font-size:13px;background:#fafbfc;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:#1e3a4f;box-shadow:0 0 0 2px rgba(30,58,79,.1)}
+textarea{resize:vertical}
+.row{display:flex;gap:8px}
+.half{flex:1}
+
+/* ── Size toggle ── */
+.size-toggle{display:flex;gap:0;border:1.5px solid #d0d8df;border-radius:8px;overflow:hidden}
+.size-btn{flex:1;padding:10px 8px;background:#fafbfc;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:#666;transition:all .15s}
+.size-btn.active{background:#1e3a4f;color:#fff}
+.size-btn:not(:last-child){border-right:1.5px solid #d0d8df}
+
+/* ── Pharmacist tags ── */
+.tag-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:3px 10px;background:#e3edf4;border-radius:12px;font-size:11px;font-weight:500;color:#1e3a4f}
+.tag button{background:none;border:none;color:#999;cursor:pointer;font-size:13px;padding:0 2px}
+.tag button:hover{color:#c0392b}
+.add-row{display:flex;gap:6px}
+.add-btn{padding:7px 14px;background:#1e3a4f;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit;white-space:nowrap}
+.add-btn:hover{background:#2a5068}
+
+/* ── Buttons ── */
+.print-btn{width:100%;padding:12px;background:#1e3a4f;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:background .15s}
+.print-btn:hover{background:#2a5068}
+
+/* ── Color picker row ── */
+.color-row{display:flex;gap:10px;align-items:center;margin-top:4px}
+.color-row input[type=color]{width:44px;height:30px;padding:1px;cursor:pointer;border:1.5px solid #d0d8df;border-radius:4px}
+
+/* ── Toast ── */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:10px 16px;border-radius:8px;color:#fff;font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;max-width:320px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:#2e7d32}
+.toast.error{background:#c0392b}
+
+/* ── Preview ── */
+.preview-label{font-size:11px;color:#666;margin-bottom:8px;text-align:center}
+.preview-frame{background:#e2e8f0;border-radius:8px;padding:16px;display:flex;justify-content:center;overflow:auto}
+.preview-paper{background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.12);position:relative;overflow:hidden}
+.print-hint{font-size:10px;color:#888;text-align:center;margin-top:10px;line-height:1.6}
+
+/* ── Print ── */
+@media print{
+  body *{visibility:hidden!important}
+  #print-area,#print-area *{visibility:visible!important}
+  #print-area{display:block!important;position:absolute;left:0;top:0;margin:0;padding:0}
+  @page{margin:0;size:A4}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+#print-area{display:none}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-left">
+    <span class="logo-box">
+      <svg width="56" height="26" viewBox="0 0 66 34" xmlns="http://www.w3.org/2000/svg" aria-label="SanmiG">
+        <path d="M27 8 C22 3 14 3 11 8 C16 9 22 9 27 8 Z" fill="#7cb342"/>
+        <path d="M30 8 C35 2 44 3 47 9 C41 10 35 10 30 8 Z" fill="#43a047"/>
+        <path d="M28.5 9 L28.5 4" stroke="#558b2f" stroke-width="1.2" stroke-linecap="round"/>
+        <text x="2" y="28" font-family="'Noto Sans JP',sans-serif" font-size="17" font-weight="700">
+          <tspan fill="#2e7d32">Sanmi</tspan><tspan fill="#66bb6a">G</tspan>
+        </text>
+      </svg>
+    </span>
+    <div>
+      <h1>かかりつけ薬剤師シール</h1>
+      <p>A4普通紙に印刷 → ハサミで切ってお薬手帳に貼付</p>
+    </div>
+  </div>
+</header>
+
+<div class="main-wrap">
+  <!-- Left panel -->
+  <div class="panel">
+
+    <!-- 1. Pharmacist -->
+    <div class="card">
+      <div class="card-title"><span class="num">1</span>薬剤師を選ぶ</div>
+      <select id="pharmacist-select" onchange="updatePreview()">
+        <option value="">-- 選択してください --</option>
+      </select>
+      <p class="field-label" style="margin-top:10px;color:#888;font-weight:500">薬剤師の登録・削除</p>
+      <div class="tag-list" id="pharm-tags"></div>
+      <div class="add-row">
+        <input id="new-pharm" placeholder="薬剤師名を入力" style="flex:1">
+        <button class="add-btn" onclick="addPharmacist()">追加</button>
+      </div>
+    </div>
+
+    <!-- 2. Pharmacy info -->
+    <div class="card">
+      <div class="card-title"><span class="num">2</span>薬局情報</div>
+      <label class="field-label">薬局名</label>
+      <input id="pharmacy-name" placeholder="○○薬局" oninput="updatePreview()">
+
+      <div class="row" style="margin-top:8px">
+        <div class="half">
+          <label class="field-label">店舗電話</label>
+          <input id="phone-store" placeholder="078-123-4567" oninput="updatePreview()">
+        </div>
+        <div class="half">
+          <label class="field-label">夜間電話</label>
+          <input id="phone-night" placeholder="090-1234-5678" oninput="updatePreview()">
+        </div>
+      </div>
+
+      <label class="field-label">注意書き</label>
+      <textarea id="note-text" rows="2" oninput="updatePreview()">※出ない場合は留守番電話に「お名前」「ご用件」をお願いします。折り返しご連絡します。</textarea>
+
+      <label class="field-label">テーマカラー</label>
+      <div class="color-row">
+        <input type="color" id="theme-color" value="#2e7d32" onchange="updatePreview()">
+        <span style="font-size:11px;color:#888">枠・タイトル色</span>
+      </div>
+    </div>
+
+    <!-- 3. Size -->
+    <div class="card">
+      <div class="card-title"><span class="num">3</span>シールサイズ</div>
+      <div class="size-toggle">
+        <button class="size-btn active" onclick="setSize('standard')" id="btn-standard">標準<br><span style="font-size:10px;font-weight:400">86.4×42.3mm（12枚）</span></button>
+        <button class="size-btn" onclick="setSize('small')" id="btn-small">小さめ<br><span style="font-size:10px;font-weight:400">70×33.9mm（24枚）</span></button>
+      </div>
+      <p style="font-size:10px;color:#999;margin-top:6px">標準 = 一般的なお薬手帳サイズ。小さめ = 独自手帳・小型手帳向け</p>
+    </div>
+
+    <!-- Print button -->
+    <div class="card">
+      <button class="print-btn" onclick="doPrint()">印刷する</button>
+    </div>
+  </div>
+
+  <!-- Right: Preview -->
+  <div class="preview-area">
+    <div class="preview-label" id="preview-info">標準サイズ（86.4×42.3mm）× 12枚</div>
+    <div class="preview-frame">
+      <div class="preview-paper" id="preview-paper" style="width:210mm;height:297mm">
+        <!-- Generated dynamically -->
+      </div>
+    </div>
+    <p class="print-hint">印刷時は「余白: なし」「背景のグラフィック: ON」に設定してください</p>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Hidden print area (iframe method) -->
+<div id="print-area"></div>
+
+<script>
+// ── Config ──
+const SIZES = {
+  standard: { w: 86.4, h: 42.3, cols: 2, rows: 6, label: '標準サイズ（86.4×42.3mm）× 12枚' },
+  small:    { w: 70,   h: 33.9, cols: 3, rows: 8, label: '小さめサイズ（70×33.9mm）× 24枚' }
+};
+
+// ── State ──
+let state = {
+  pharmacists: [],
+  pharmacyName: '',
+  phoneStore: '',
+  phoneNight: '',
+  note: '※出ない場合は留守番電話に「お名前」「ご用件」をお願いします。折り返しご連絡します。',
+  themeColor: '#2e7d32',
+  size: 'standard'
+};
+
+const STORAGE_KEY = 'kakaritsuke_v2';
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : s;
+  return d.innerHTML;
+}
+
+// ── Init ──
+function init() {
+  loadState();
+  applyStateToForm();
+  renderPharmTags();
+  updatePharmSelect();
+  updateSizeButtons();
+  updatePreview();
+
+  document.getElementById('new-pharm').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addPharmacist(); }
+  });
+}
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) state = { ...state, ...JSON.parse(s) };
+  } catch {}
+}
+
+function saveState() {
+  gatherFormToState();
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+function gatherFormToState() {
+  state.pharmacyName = document.getElementById('pharmacy-name').value;
+  state.phoneStore = document.getElementById('phone-store').value;
+  state.phoneNight = document.getElementById('phone-night').value;
+  state.note = document.getElementById('note-text').value;
+  state.themeColor = document.getElementById('theme-color').value;
+}
+
+function applyStateToForm() {
+  document.getElementById('pharmacy-name').value = state.pharmacyName;
+  document.getElementById('phone-store').value = state.phoneStore;
+  document.getElementById('phone-night').value = state.phoneNight;
+  document.getElementById('note-text').value = state.note;
+  document.getElementById('theme-color').value = state.themeColor;
+}
+
+// ── Pharmacist management ──
+function renderPharmTags() {
+  const box = document.getElementById('pharm-tags');
+  box.innerHTML = '';
+  state.pharmacists.forEach((p, i) => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = esc(p) + ' <button onclick="removePharmacist(' + i + ')">×</button>';
+    box.appendChild(tag);
+  });
+}
+
+function updatePharmSelect() {
+  const sel = document.getElementById('pharmacist-select');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">-- 選択してください --</option>';
+  state.pharmacists.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p;
+    o.textContent = p;
+    sel.appendChild(o);
+  });
+  if (state.pharmacists.includes(prev)) sel.value = prev;
+  else if (state.pharmacists.length > 0) sel.value = state.pharmacists[0];
+}
+
+function addPharmacist() {
+  const inp = document.getElementById('new-pharm');
+  const v = inp.value.trim();
+  if (!v) return;
+  if (v.length > 12) { showToast('12文字以内で入力してください', 'error'); return; }
+  if (state.pharmacists.includes(v)) { showToast('すでに登録されています', 'error'); return; }
+  state.pharmacists.push(v);
+  inp.value = '';
+  renderPharmTags();
+  updatePharmSelect();
+  document.getElementById('pharmacist-select').value = v;
+  saveState();
+  updatePreview();
+  showToast(esc(v) + ' を追加しました', 'success');
+}
+
+function removePharmacist(i) {
+  const name = state.pharmacists[i];
+  state.pharmacists.splice(i, 1);
+  renderPharmTags();
+  updatePharmSelect();
+  saveState();
+  updatePreview();
+  showToast(esc(name) + ' を削除しました', 'success');
+}
+
+// ── Size ──
+function setSize(key) {
+  state.size = key;
+  updateSizeButtons();
+  saveState();
+  updatePreview();
+}
+
+function updateSizeButtons() {
+  document.getElementById('btn-standard').classList.toggle('active', state.size === 'standard');
+  document.getElementById('btn-small').classList.toggle('active', state.size === 'small');
+}
+
+// ── Seal rendering ──
+function renderOneSeal(cfg, data) {
+  const theme = data.themeColor || '#2e7d32';
+  const name = data.pharmacist || '　　　　　　';
+
+  let phoneDisplay = '';
+  if (data.phoneStore && data.phoneNight) phoneDisplay = '店舗 ' + esc(data.phoneStore) + ' ／ 夜間 ' + esc(data.phoneNight);
+  else if (data.phoneStore) phoneDisplay = '店舗 ' + esc(data.phoneStore);
+  else if (data.phoneNight) phoneDisplay = '夜間 ' + esc(data.phoneNight);
+
+  const isSmall = cfg.w < 80;
+  const titleSize = isSmall ? '9px' : '11px';
+  const nameSize = isSmall ? '10px' : '12px';
+  const infoSize = isSmall ? '8px' : '9.5px';
+  const labelSize = isSmall ? '7px' : '8px';
+  const noteSize = isSmall ? '6px' : '7px';
+  const pad = isSmall ? '2mm 2.5mm' : '2.5mm 3mm';
+  const badgeSize = isSmall ? '7px' : '8px';
+
+  let h = '<div style="width:' + cfg.w + 'mm;height:' + cfg.h + 'mm;padding:1.5mm;font-family:\'Noto Sans JP\',sans-serif;color:#1a1a1a;box-sizing:border-box">';
+  h += '<div style="width:100%;height:100%;border:1.5px solid ' + theme + ';border-radius:2mm;padding:' + pad + ';box-sizing:border-box;display:flex;flex-direction:column">';
+
+  // Header
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid ' + theme + ';padding-bottom:1mm;margin-bottom:1.5mm;flex-shrink:0">';
+  h += '<div style="display:flex;align-items:center;gap:1mm">';
+  h += '<svg width="' + (isSmall ? 11 : 13) + '" height="' + (isSmall ? 11 : 13) + '" viewBox="0 0 24 24"><path d="M17.8 4C16.4 2.4 13.7 1.6 11.4 2.5C9.1 3.4 7.8 5.4 7.2 7.8C6 7.3 4.5 7.3 3.3 8C1.5 9.1 1 11.4 2 13.2C3 15 5.3 15.5 7.1 14.5L7.5 14.3L8 16.5C8.2 17.3 8.9 17.8 9.7 17.8H9.9L12 17.3L14 18.2C14.5 18.4 15 18.3 15.4 18L17.2 16.2C17.6 15.8 17.7 15.2 17.5 14.7L16.8 13L17.8 12.8C18.6 12.6 19.2 12 19.3 11.2L19.7 8.5C19.8 7.2 19 5.3 17.8 4Z" fill="' + theme + '" opacity=".85"/></svg>';
+  h += '<span style="font-weight:700;font-size:' + titleSize + ';letter-spacing:.3px;color:' + theme + '">かかりつけ薬剤師</span>';
+  h += '</div>';
+  h += '<span style="font-size:' + badgeSize + ';font-weight:700;color:#fff;background:' + theme + ';border-radius:6px;padding:1px 5px">SanmiG</span>';
+  h += '</div>';
+
+  // Body
+  h += '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:.8mm;font-size:' + infoSize + '">';
+  h += '<div style="border-bottom:.5px solid #cbd5e1;padding-bottom:.8mm;display:flex;align-items:baseline"><span style="color:#666;font-size:' + labelSize + ';flex-shrink:0">薬剤師氏名：</span><span style="font-weight:700;font-size:' + nameSize + ';margin-left:1mm">' + esc(name) + '</span></div>';
+  if (data.pharmacyName) {
+    h += '<div style="border-bottom:.5px solid #cbd5e1;padding-bottom:.8mm;display:flex;align-items:baseline"><span style="color:#666;font-size:' + labelSize + ';flex-shrink:0">薬局名：</span><span style="font-weight:600;font-size:' + infoSize + ';margin-left:1mm">' + esc(data.pharmacyName) + '</span></div>';
+  }
+  if (phoneDisplay) {
+    h += '<div style="border-bottom:.5px solid #cbd5e1;padding-bottom:.8mm;display:flex;align-items:baseline"><span style="color:#666;font-size:' + labelSize + ';flex-shrink:0">電話：</span><span style="font-weight:600;font-size:' + infoSize + ';margin-left:1mm">' + phoneDisplay + '</span></div>';
+  }
+  h += '</div>';
+
+  // Note
+  if (data.note) {
+    h += '<div style="font-size:' + noteSize + ';line-height:1.4;color:#555;padding:1mm 1.5mm;background:#f7f9fb;border-radius:1mm;flex-shrink:0;margin-top:auto">' + esc(data.note) + '</div>';
+  }
+
+  h += '</div></div>';
+  return h;
+}
+
+function renderSheet(cfg, data) {
+  const marginLeft = (210 - cfg.cols * cfg.w) / 2;
+  const marginTop = (297 - cfg.rows * cfg.h) / 2;
+  const total = cfg.cols * cfg.rows;
+
+  let h = '<div style="position:absolute;top:' + marginTop + 'mm;left:' + marginLeft + 'mm;display:grid;grid-template-columns:repeat(' + cfg.cols + ',' + cfg.w + 'mm);grid-template-rows:repeat(' + cfg.rows + ',' + cfg.h + 'mm)">';
+  for (let i = 0; i < total; i++) {
+    h += renderOneSeal(cfg, data);
+  }
+  h += '</div>';
+  return h;
+}
+
+// ── Preview ──
+function updatePreview() {
+  saveState();
+  const cfg = SIZES[state.size];
+  const data = {
+    pharmacist: document.getElementById('pharmacist-select').value,
+    pharmacyName: state.pharmacyName,
+    phoneStore: state.phoneStore,
+    phoneNight: state.phoneNight,
+    note: state.note,
+    themeColor: state.themeColor
+  };
+
+  document.getElementById('preview-info').textContent = cfg.label;
+  const paper = document.getElementById('preview-paper');
+  paper.innerHTML = renderSheet(cfg, data);
+  document.getElementById('print-area').innerHTML = '<div style="width:210mm;height:297mm;position:relative;overflow:hidden">' + renderSheet(cfg, data) + '</div>';
+}
+
+// ── Print (iframe method) ──
+function doPrint() {
+  const sel = document.getElementById('pharmacist-select');
+  if (!sel.value) { showToast('薬剤師を選択してください', 'error'); return; }
+
+  const html = document.getElementById('print-area').innerHTML;
+  const old = document.getElementById('print-iframe');
+  if (old) old.remove();
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'print-iframe';
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write('<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">' +
+    '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">' +
+    '<style>*{margin:0;padding:0;box-sizing:border-box}html,body{margin:0;padding:0}' +
+    '@page{size:A4;margin:0}' +
+    '*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}' +
+    '</style></head><body>' + html + '</body></html>');
+  doc.close();
+
+  const fire = () => { iframe.contentWindow.focus(); iframe.contentWindow.print(); };
+  const fonts = iframe.contentWindow.document.fonts;
+  if (fonts && fonts.ready) {
+    Promise.race([fonts.ready, new Promise(r => setTimeout(r, 600))]).then(fire).catch(fire);
+  } else {
+    setTimeout(fire, 300);
+  }
+}
+
+// ── Toast ──
+function showToast(msg, type) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || 'error');
+  t.textContent = msg;
+  c.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2500);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>患者情報シール</title>
+<link rel="icon" href="https://raw.githubusercontent.com/hidepon518-afk/sheet-app/main/kanja-icon.png">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/hidepon518-afk/sheet-app/main/kanja-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:#f0f4f8;color:#333;min-height:100vh}
+
+/* ── Layout ── */
+.app-header{background:#1a5c4c;color:#e0f2ef;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+.app-header h1{font-size:17px;font-weight:700;letter-spacing:.5px}
+.app-header p{font-size:10px;color:#8ec5b5;margin-top:2px}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo-box{background:#fff;border-radius:8px;padding:4px 8px;display:inline-flex;align-items:center}
+
+.main-wrap{max-width:1200px;margin:0 auto;padding:20px;display:flex;gap:24px}
+@media(max-width:900px){.main-wrap{flex-direction:column}}
+
+.panel{width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
+@media(max-width:900px){.panel{width:100%}}
+.preview-area{flex:1;display:flex;flex-direction:column;align-items:center}
+
+/* ── Cards ── */
+.card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card-title{font-size:13px;font-weight:700;color:#1a5c4c;margin-bottom:10px;padding-bottom:6px;border-bottom:1.5px solid #e2e8f0;display:flex;align-items:center;gap:6px}
+.card-title .num{background:#1a5c4c;color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+
+/* ── Form ── */
+.field-label{display:block;font-size:11px;font-weight:600;color:#555;margin-bottom:3px;margin-top:8px}
+.field-label:first-child{margin-top:0}
+input,select,textarea{width:100%;padding:7px 10px;border:1.5px solid #d0d8df;border-radius:6px;font-size:13px;background:#fafbfc;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:#1a5c4c;box-shadow:0 0 0 2px rgba(26,92,76,.1)}
+textarea{resize:vertical}
+.row{display:flex;gap:8px}
+.half{flex:1}
+
+/* ── Seal selector (面タブ) ── */
+.seal-tabs{display:flex;flex-wrap:wrap;gap:5px;padding:8px;background:#f1f5f9;border-radius:8px;border:1.5px solid #e2e8f0}
+.seal-tab{padding:6px 12px;border:1.5px solid #d0d8df;border-radius:6px;background:#fafbfc;cursor:pointer;font-size:11px;font-weight:600;color:#666;transition:all .15s;display:flex;align-items:center;gap:4px}
+.seal-tab.active{background:#1a5c4c;color:#fff;border-color:#1a5c4c}
+.seal-tab.has-data{background:#e0f2ef;color:#1a5c4c;border-color:#a7d7c9}
+.seal-tab.active.has-data{background:#1a5c4c;color:#fff;border-color:#1a5c4c}
+.seal-tab .dot{width:5px;height:5px;border-radius:50%;background:#e6a817}
+
+.copy-all-btn{padding:6px 12px;background:transparent;color:#1a5c4c;border:1.5px solid #1a5c4c;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.copy-all-btn:hover{background:#e0f2ef}
+
+/* ── Buttons ── */
+.print-btn{width:100%;padding:12px;background:#1a5c4c;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:background .15s}
+.print-btn:hover{background:#237a65}
+
+/* ── Color picker ── */
+.color-row{display:flex;gap:10px;align-items:center;margin-top:4px}
+.color-row input[type=color]{width:44px;height:30px;padding:1px;cursor:pointer;border:1.5px solid #d0d8df;border-radius:4px}
+
+/* ── Toast ── */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:10px 16px;border-radius:8px;color:#fff;font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;max-width:320px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:#1a5c4c}
+.toast.error{background:#c0392b}
+
+/* ── Preview ── */
+.preview-label{font-size:11px;color:#666;margin-bottom:8px;text-align:center}
+.preview-frame{background:#e2e8f0;border-radius:8px;padding:16px;display:flex;justify-content:center;overflow:auto}
+.preview-paper{background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.12);position:relative;overflow:hidden}
+.print-hint{font-size:10px;color:#888;text-align:center;margin-top:10px;line-height:1.6}
+
+/* ── Print ── */
+@media print{
+  body *{visibility:hidden!important}
+  #print-area,#print-area *{visibility:visible!important}
+  #print-area{display:block!important;position:absolute;left:0;top:0;margin:0;padding:0}
+  @page{margin:0;size:A4}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+#print-area{display:none}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-left">
+    <span class="logo-box">
+      <svg width="56" height="26" viewBox="0 0 66 34" xmlns="http://www.w3.org/2000/svg" aria-label="SanmiG">
+        <path d="M27 8 C22 3 14 3 11 8 C16 9 22 9 27 8 Z" fill="#7cb342"/>
+        <path d="M30 8 C35 2 44 3 47 9 C41 10 35 10 30 8 Z" fill="#43a047"/>
+        <path d="M28.5 9 L28.5 4" stroke="#558b2f" stroke-width="1.2" stroke-linecap="round"/>
+        <text x="2" y="28" font-family="'Noto Sans JP',sans-serif" font-size="17" font-weight="700">
+          <tspan fill="#2e7d32">Sanmi</tspan><tspan fill="#66bb6a">G</tspan>
+        </text>
+      </svg>
+    </span>
+    <div>
+      <h1>患者情報シール</h1>
+      <p>お薬手帳の個人情報ページ用シールを生成・印刷</p>
+    </div>
+  </div>
+</header>
+
+<div class="main-wrap">
+  <!-- Left panel -->
+  <div class="panel">
+
+    <!-- 1. Seal selector + Patient info -->
+    <div class="card">
+      <div class="card-title"><span class="num">1</span>患者情報の編集</div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span class="field-label" style="margin:0">編集する面を選択</span>
+        <button class="copy-all-btn" onclick="copyCurrentToAll()">全面にコピー</button>
+      </div>
+      <div class="seal-tabs" id="seal-tabs"></div>
+
+      <div style="margin-top:12px;border-top:1.5px solid #e2e8f0;padding-top:12px">
+        <div class="row">
+          <div class="half">
+            <label class="field-label">お名前</label>
+            <input id="pat-name" placeholder="（空欄＝手書き用）" oninput="saveAndUpdate()">
+          </div>
+          <div class="half">
+            <label class="field-label">生年月日</label>
+            <input id="pat-dob" placeholder="例：S55.1.1" oninput="saveAndUpdate()">
+          </div>
+        </div>
+        <label class="field-label">ご連絡先</label>
+        <input id="pat-contact" placeholder="例：090-1234-5678" oninput="saveAndUpdate()">
+        <label class="field-label">アレルギー歴</label>
+        <input id="pat-allergy" placeholder="例：ペニシリン系" oninput="saveAndUpdate()">
+        <label class="field-label">副作用歴</label>
+        <textarea id="pat-side-effect" rows="2" placeholder="例：ロキソニンで胃痛（空欄＝手書き用）" oninput="saveAndUpdate()"></textarea>
+      </div>
+    </div>
+
+    <!-- 2. Design -->
+    <div class="card">
+      <div class="card-title"><span class="num">2</span>デザイン設定</div>
+      <div class="row">
+        <div class="half">
+          <label class="field-label">テーマカラー</label>
+          <div class="color-row">
+            <input type="color" id="theme-color" value="#6ab592" onchange="saveAndUpdate()">
+            <span style="font-size:11px;color:#888">ヘッダー・枠色</span>
+          </div>
+        </div>
+        <div class="half">
+          <label class="field-label">文字色</label>
+          <div class="color-row">
+            <input type="color" id="text-color" value="#2d3748" onchange="saveAndUpdate()">
+            <span style="font-size:11px;color:#888">本文の色</span>
+          </div>
+        </div>
+      </div>
+      <label class="field-label">シールの枠線</label>
+      <select id="border-style" onchange="saveAndUpdate()">
+        <option value="dashed">薄い破線（切り取り目安）</option>
+        <option value="solid-gray">薄い実線</option>
+        <option value="solid-color">テーマ色の枠線</option>
+        <option value="none">枠線なし</option>
+      </select>
+    </div>
+
+    <!-- 3. Info -->
+    <div class="card" style="background:#f8fafb">
+      <div style="font-size:11px;color:#888;line-height:1.6">
+        <strong style="color:#1a5c4c">レイアウト：</strong>A4縦 ／ 2列×2行（4面）／ 95×105mm ／ お薬手帳サイズ最適化
+      </div>
+    </div>
+
+    <!-- Print -->
+    <div class="card">
+      <button class="print-btn" onclick="doPrint()">印刷する</button>
+    </div>
+  </div>
+
+  <!-- Right: Preview -->
+  <div class="preview-area">
+    <div class="preview-label">A4 ／ 95×105mm × 4面</div>
+    <div class="preview-frame">
+      <div class="preview-paper" id="preview-paper" style="width:210mm;height:297mm"></div>
+    </div>
+    <p class="print-hint">印刷時は「余白: なし」「背景のグラフィック: ON」に設定してください</p>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+<!-- Print area -->
+<div id="print-area"></div>
+
+<script>
+// ── Config ──
+const LAYOUT = { cols: 2, rows: 2, w: 95, h: 105, marginTop: 21.5, marginLeft: 10, radius: 3 };
+const TOTAL = LAYOUT.cols * LAYOUT.rows;
+
+const MED_ITEMS = [
+  '高血圧','高脂血症','糖尿病','脳梗塞','心疾患',
+  '肝機能','腎疾患','胃腸疾患','喘息','緑内障',
+  '前立腺肥大','ワーファリン服用中'
+];
+const ALLERGY_SUBS = ['花粉','ハウスダスト'];
+
+// ── State ──
+const STORAGE_KEY = 'patient_seal_v2';
+let state = {
+  patients: [],
+  themeColor: '#6ab592',
+  textColor: '#2d3748',
+  borderStyle: 'dashed',
+  activeIndex: 0
+};
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : s;
+  return d.innerHTML;
+}
+
+function emptyPatient() { return { name:'', dob:'', contact:'', allergy:'', sideEffect:'' }; }
+
+// ── Init ──
+function init() {
+  loadState();
+  while (state.patients.length < TOTAL) state.patients.push(emptyPatient());
+  applyStateToForm();
+  renderTabs();
+  loadPatientToForm();
+  updatePreview();
+}
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) state = { ...state, ...JSON.parse(s) };
+  } catch {}
+}
+
+function saveState() {
+  gatherFormToState();
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+function gatherFormToState() {
+  const p = state.patients[state.activeIndex] || emptyPatient();
+  p.name = document.getElementById('pat-name').value;
+  p.dob = document.getElementById('pat-dob').value;
+  p.contact = document.getElementById('pat-contact').value;
+  p.allergy = document.getElementById('pat-allergy').value;
+  p.sideEffect = document.getElementById('pat-side-effect').value;
+  state.patients[state.activeIndex] = p;
+  state.themeColor = document.getElementById('theme-color').value;
+  state.textColor = document.getElementById('text-color').value;
+  state.borderStyle = document.getElementById('border-style').value;
+}
+
+function applyStateToForm() {
+  document.getElementById('theme-color').value = state.themeColor;
+  document.getElementById('text-color').value = state.textColor;
+  document.getElementById('border-style').value = state.borderStyle;
+}
+
+function loadPatientToForm() {
+  const p = state.patients[state.activeIndex] || emptyPatient();
+  document.getElementById('pat-name').value = p.name;
+  document.getElementById('pat-dob').value = p.dob;
+  document.getElementById('pat-contact').value = p.contact;
+  document.getElementById('pat-allergy').value = p.allergy;
+  document.getElementById('pat-side-effect').value = p.sideEffect;
+}
+
+// ── Tabs ──
+function renderTabs() {
+  const box = document.getElementById('seal-tabs');
+  box.innerHTML = '';
+  for (let i = 0; i < TOTAL; i++) {
+    const btn = document.createElement('button');
+    const p = state.patients[i];
+    const hasData = p && (p.name || p.dob || p.contact || p.allergy || p.sideEffect);
+    btn.className = 'seal-tab' + (i === state.activeIndex ? ' active' : '') + (hasData ? ' has-data' : '');
+    btn.onclick = () => switchTab(i);
+    btn.innerHTML = '面 ' + (i + 1) + (hasData ? ' <span class="dot"></span>' : '');
+    box.appendChild(btn);
+  }
+}
+
+function switchTab(i) {
+  gatherFormToState();
+  state.activeIndex = i;
+  loadPatientToForm();
+  renderTabs();
+}
+
+function copyCurrentToAll() {
+  gatherFormToState();
+  const src = state.patients[state.activeIndex];
+  for (let i = 0; i < TOTAL; i++) {
+    state.patients[i] = { ...src };
+  }
+  saveState();
+  renderTabs();
+  updatePreview();
+  showToast('全面にコピーしました', 'success');
+}
+
+// ── Seal rendering ──
+function renderOneSeal(patient, index) {
+  const theme = state.themeColor;
+  const tc = state.textColor;
+  const lightBg = theme + '22';
+  const medBg = theme + '33';
+
+  const valStyle = 'display:inline-block;font-weight:700;font-size:3.5mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;';
+  const ulStyle = 'display:inline-block;border-bottom:0.3mm solid ' + tc + ';min-height:5mm;';
+
+  function field(val, w) {
+    return val
+      ? '<span style="' + valStyle + 'max-width:' + w + ';" title="' + esc(val) + '">' + esc(val) + '</span>'
+      : '<span style="' + ulStyle + 'width:' + w + ';">&nbsp;</span>';
+  }
+
+  let checkHtml = '';
+  MED_ITEMS.forEach(item => {
+    checkHtml += '<span style="white-space:nowrap;margin-right:2.5mm;display:inline-block;line-height:1.6">□ ' + esc(item) + '</span>';
+  });
+
+  let allergySub = '';
+  ALLERGY_SUBS.forEach(sub => {
+    allergySub += '<span style="white-space:nowrap;margin-right:1.5mm">□ ' + esc(sub) + '</span>';
+  });
+
+  let h = '<div style="width:' + LAYOUT.w + 'mm;height:' + LAYOUT.h + 'mm;display:flex;flex-direction:column;font-family:\'Noto Sans JP\',sans-serif;overflow:hidden;box-sizing:border-box;';
+
+  const bs = state.borderStyle;
+  if (bs === 'dashed') h += 'border:0.5px dashed #cbd5e1;';
+  else if (bs === 'solid-gray') h += 'border:0.5px solid #e2e8f0;';
+  else if (bs === 'solid-color') h += 'border:1.5px solid ' + theme + ';';
+  h += 'border-radius:' + LAYOUT.radius + 'mm">';
+
+  // Header
+  h += '<div style="background:' + theme + ';color:#fff;text-align:center;padding:2mm;flex-shrink:0">';
+  h += '<span style="font-size:4.5mm;font-weight:800;letter-spacing:1mm;display:flex;align-items:center;justify-content:center;gap:2mm">';
+  h += '<svg style="width:4.5mm;height:4.5mm;fill:#fff" viewBox="0 0 24 24"><path d="M5 3C3.89 3 3 3.89 3 5V19C3 20.11 3.89 21 5 21H19C20.11 21 21 20.11 21 19V5C21 3.89 20.11 3 19 3H5M5 5H19V19H5V5M7 7V9H17V7H7M7 11V13H17V11H7M7 15V17H14V15H7Z"/></svg>';
+  h += 'お薬手帳患者情報</span></div>';
+
+  // Basic info
+  h += '<div style="padding:2.5mm 3.5mm 1.5mm;flex-shrink:0;color:' + tc + '">';
+  h += '<div style="display:flex;gap:2mm;padding-bottom:1.5mm;margin-bottom:1.5mm;align-items:baseline;overflow:hidden">';
+  h += '<div style="flex:1.2;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><span style="font-size:3mm;font-weight:800">お名前：</span>' + field(patient.name, '62%') + '</div>';
+  h += '<div style="flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"><span style="font-size:3mm;font-weight:800">生年月日：</span>' + field(patient.dob, '48%') + '</div>';
+  h += '</div>';
+  h += '<div style="padding-bottom:1.5mm;margin-bottom:1.5mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="font-size:3mm;font-weight:800">ご連絡先：</span>' + field(patient.contact, '72%') + '</div>';
+  h += '<div style="padding-bottom:1.5mm;margin-bottom:1mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="font-size:3mm;font-weight:800">アレルギー歴：</span>' + field(patient.allergy, '65%') + '</div>';
+  h += '</div>';
+
+  // Side effects
+  h += '<div style="margin:1mm 3.5mm;padding:2mm 2.5mm;background:' + lightBg + ';border:0.3mm solid ' + theme + '44;border-radius:1.5mm;flex-shrink:0">';
+  h += '<div style="font-size:3mm;font-weight:800;color:' + tc + ';margin-bottom:1mm">副作用歴：</div>';
+  h += '<div style="height:13.5mm;max-height:13.5mm;overflow:hidden;background:' + medBg + ';border-radius:1mm;padding:1.5mm;font-size:2.8mm;color:' + tc + ';white-space:pre-wrap;word-break:break-all;';
+  h += 'background-image:repeating-linear-gradient(to bottom,transparent,transparent 4.5mm,' + tc + '18 4.5mm,' + tc + '18 4.8mm);background-position:0 1mm;box-sizing:border-box">';
+  h += esc(patient.sideEffect) + '</div></div>';
+
+  // Medical history checkboxes
+  h += '<div style="margin:1mm 3.5mm 2.5mm;padding:2mm 2.5mm 1.5mm;background:' + lightBg + ';border:0.3mm solid ' + theme + '44;border-radius:1.5mm;flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between">';
+  h += '<div><div style="font-size:3mm;font-weight:800;color:' + tc + ';margin-bottom:1.2mm">既往歴：</div>';
+  h += '<div style="font-size:2.8mm;color:' + tc + ';line-height:1.6">' + checkHtml + '</div></div>';
+  h += '<div style="margin-top:1mm;border-top:0.2mm dashed ' + tc + '15;padding-top:1mm">';
+  h += '<div style="font-size:2.8mm;color:' + tc + ';line-height:1.6">';
+  h += '<span style="white-space:nowrap;margin-right:1.5mm">□ アレルギー（</span>' + allergySub;
+  h += '<span style="white-space:nowrap">□ その他 <span style="display:inline-block;width:14mm;border-bottom:0.3mm solid ' + tc + '">&nbsp;</span> ）</span></div>';
+  h += '<div style="font-size:2.8mm;color:' + tc + ';margin-top:1mm;line-height:1.6">';
+  h += '<span>□ その他 <span style="display:inline-block;width:70%;border-bottom:0.3mm solid ' + tc + '">&nbsp;</span></span></div>';
+  h += '</div></div>';
+
+  h += '</div>';
+  return h;
+}
+
+function renderSheet() {
+  const ml = LAYOUT.marginLeft;
+  const mt = LAYOUT.marginTop;
+  let h = '<div style="position:absolute;top:' + mt + 'mm;left:' + ml + 'mm;display:grid;grid-template-columns:repeat(' + LAYOUT.cols + ',' + LAYOUT.w + 'mm);grid-template-rows:repeat(' + LAYOUT.rows + ',' + LAYOUT.h + 'mm)">';
+  for (let i = 0; i < TOTAL; i++) {
+    h += renderOneSeal(state.patients[i] || emptyPatient(), i);
+  }
+  h += '</div>';
+  return h;
+}
+
+// ── Preview ──
+function updatePreview() {
+  const paper = document.getElementById('preview-paper');
+  const sheet = renderSheet();
+  paper.innerHTML = sheet;
+  document.getElementById('print-area').innerHTML = '<div style="width:210mm;height:297mm;position:relative;overflow:hidden">' + sheet + '</div>';
+}
+
+function saveAndUpdate() {
+  saveState();
+  renderTabs();
+  updatePreview();
+}
+
+// ── Print (iframe) ──
+function doPrint() {
+  const html = document.getElementById('print-area').innerHTML;
+  const old = document.getElementById('print-iframe');
+  if (old) old.remove();
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'print-iframe';
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write('<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">' +
+    '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">' +
+    '<style>*{margin:0;padding:0;box-sizing:border-box}html,body{margin:0;padding:0}' +
+    '@page{size:A4;margin:0}' +
+    '*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}' +
+    '</style></head><body>' + html + '</body></html>');
+  doc.close();
+
+  const fire = () => { iframe.contentWindow.focus(); iframe.contentWindow.print(); };
+  const fonts = iframe.contentWindow.document.fonts;
+  if (fonts && fonts.ready) {
+    Promise.race([fonts.ready, new Promise(r => setTimeout(r, 600))]).then(fire).catch(fire);
+  } else {
+    setTimeout(fire, 300);
+  }
+}
+
+// ── Toast ──
+function showToast(msg, type) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || 'error');
+  t.textContent = msg;
+  c.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2500);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
