@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>地区研修 記録</title>
+<link rel="icon" href="https://raw.githubusercontent.com/hidepon518-afk/sheet-app/main/kenshu-icon.png">
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --panel: #ffffff;
+    --line: #d9d3c5;
+    --ink: #2e2a23;
+    --accent: #6b8a3a;
+    --accent-soft: #e5ecd4;
+    --muted: #8b8579;
+    --danger: #b54a3a;
+    --tab-bg: #ece8dd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 16px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 580px; margin: 0 auto; }
+  h1 {
+    font-size: 18px;
+    margin: 0 0 4px;
+    letter-spacing: 0.04em;
+  }
+  .sub {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 14px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 8px;
+    background: var(--tab-bg);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+    color: var(--muted);
+    border-radius: 4px 4px 0 0;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    border-color: var(--accent);
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .panel h2 {
+    font-size: 13px;
+    margin: 0 0 10px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+  }
+  label.row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 4px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+  label.row:hover { background: var(--accent-soft); }
+  label.row input[type="checkbox"],
+  label.row input[type="radio"] {
+    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+  }
+  .row-text { flex: 1; }
+  .req {
+    color: var(--muted);
+    font-size: 11px;
+    margin-left: 4px;
+  }
+  input[type="date"], input[type="text"], textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  .radio-group {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .radio-group label.row { padding: 6px 8px; }
+  .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn.secondary {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .photo-input { display: none; }
+  .photo-btn {
+    display: inline-block;
+    padding: 10px 16px;
+    border: 2px dashed var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: center;
+  }
+  .photo-preview {
+    margin-top: 10px;
+    max-width: 100%;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    display: none;
+  }
+  .photo-preview.show { display: block; }
+  .clear-photo {
+    display: none;
+    margin-top: 6px;
+    color: var(--danger);
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .clear-photo.show { display: inline-block; }
+  .records {
+    margin-top: 24px;
+  }
+  .records h2 {
+    font-size: 13px;
+    color: var(--accent);
+    margin: 24px 0 10px;
+  }
+  .record-item {
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background: #fff;
+    font-size: 13px;
+  }
+  .record-date {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .record-meta {
+    color: var(--muted);
+    font-size: 11px;
+    margin-left: 6px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge.benkyou { background: #fce8d4; color: #b35a1a; }
+  .record-items {
+    margin-top: 4px;
+    font-size: 13px;
+  }
+  .record-memo {
+    margin-top: 6px;
+    color: #555;
+    font-size: 12px;
+    white-space: pre-wrap;
+  }
+  .record-thumb {
+    margin-top: 8px;
+    max-width: 120px;
+    max-height: 90px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  .delete-link {
+    color: var(--danger);
+    font-size: 11px;
+    margin-left: 8px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .copy-link {
+    color: var(--accent);
+    font-size: 11px;
+    margin-left: 8px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 16px;
+  }
+  .next-step {
+    background: #fff8e6;
+    border: 1px solid #e8d090;
+    padding: 12px 14px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+  .next-step h3 {
+    font-size: 13px;
+    margin: 0 0 6px;
+    color: #8a6d1a;
+  }
+  .next-step ol {
+    margin: 6px 0 6px 18px;
+    padding: 0;
+    font-size: 12px;
+  }
+  .next-step li { margin-bottom: 4px; }
+  .prompt-box {
+    margin-top: 10px;
+    background: #faf7ee;
+    border: 1px solid var(--line);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .copy-btn {
+    margin-top: 6px;
+    font-size: 12px;
+  }
+  .url-input-label {
+    display: block;
+    font-size: 12px;
+    margin: 8px 0 4px;
+    color: var(--muted);
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>地区研修 記録</h1>
+  <div class="sub">本部入力フォーム（たたき台 / ローカル保存のみ）</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="houree" onclick="switchTab('houree')">法令研修</div>
+    <div class="tab" data-tab="benkyou" onclick="switchTab('benkyou')">任意勉強会</div>
+  </div>
+
+  <!-- ============ 法令研修タブ ============ -->
+  <div id="tab-houree">
+    <div class="panel">
+      <h2>該当研修（複数選択可）</h2>
+      <div id="trainingList"></div>
+    </div>
+
+    <div class="panel">
+      <h2>実施日</h2>
+      <input type="date" id="hr-date">
+    </div>
+
+    <div class="panel">
+      <h2>実施形式</h2>
+      <div class="radio-group">
+        <label class="row"><input type="radio" name="hr-format" value="集合"><span>集合</span></label>
+        <label class="row"><input type="radio" name="hr-format" value="オンライン" checked><span>オンライン</span></label>
+        <label class="row"><input type="radio" name="hr-format" value="動画視聴"><span>動画視聴</span></label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>補足メモ</h2>
+      <textarea id="hr-memo" placeholder="チェックすると自動で文が入ります。追記してください。"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="saveHouree()">保存</button>
+      <button class="btn secondary" onclick="clearHouree()">クリア</button>
+    </div>
+  </div>
+
+  <!-- ============ 任意勉強会タブ ============ -->
+  <div id="tab-benkyou" class="hidden">
+    <div class="panel">
+      <h2>実施日</h2>
+      <input type="date" id="bk-date">
+    </div>
+
+    <div class="panel">
+      <h2>テーマ <span class="req">（手入力 or 写真OCRで後から記入）</span></h2>
+      <input type="text" id="bk-theme" placeholder="例：糖尿病薬の最新動向">
+    </div>
+
+    <div class="panel">
+      <h2>講師・主催 <span class="req">（任意）</span></h2>
+      <input type="text" id="bk-lecturer" placeholder="例：◯◯製薬 △△先生">
+    </div>
+
+    <div class="panel">
+      <h2>写真 <span class="req">（チラシ等、任意）</span></h2>
+      <label for="bk-photo" class="photo-btn">📷 写真を撮る／選ぶ</label>
+      <input type="file" id="bk-photo" class="photo-input" accept="image/*" capture="environment" onchange="onPhotoSelected(event)">
+      <img id="bk-photo-preview" class="photo-preview" alt="プレビュー">
+      <span id="bk-photo-clear" class="clear-photo" onclick="clearPhoto()">写真を取り消す</span>
+    </div>
+
+    <div class="panel">
+      <h2>備考 <span class="req">（任意）</span></h2>
+      <textarea id="bk-memo" placeholder="任意"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="saveBenkyou()">保存</button>
+      <button class="btn secondary" onclick="clearBenkyou()">クリア</button>
+    </div>
+  </div>
+
+  <!-- ============ 保存後の Claude プロンプト表示 ============ -->
+  <div id="next-step-box" class="next-step hidden">
+    <h3>📨 写真ありの研修記録を保存しました。次の3ステップ:</h3>
+    <ol>
+      <li>下のボタンで Drive「研修記録 / 地区」フォルダを開いて写真をアップロード</li>
+      <li>アップ後のリンクをコピーして下の欄に貼り付け</li>
+      <li>「メール本文を生成」を押して、出てきた本文を Claude にコピペ</li>
+    </ol>
+    <button class="btn secondary" onclick="openDriveFolder()" style="margin-top:4px;">📂 Driveの地区フォルダを開く</button>
+    <label class="url-input-label">アップ後の画像URL</label>
+    <input type="text" id="drive-url" placeholder="https://drive.google.com/file/d/.../view">
+    <div class="actions" style="margin-top: 8px;">
+      <button class="btn" onclick="generatePrompt()">メール本文を生成</button>
+      <button class="btn secondary" onclick="closeNextStep()">閉じる</button>
+    </div>
+    <div id="prompt-output" class="hidden">
+      <label class="url-input-label" style="margin-top: 14px;">↓ ここを全選択してコピーし、Claude に貼り付けてください</label>
+      <div id="prompt-text" class="prompt-box"></div>
+      <button class="btn copy-btn" onclick="copyPrompt()">本文をコピー</button>
+    </div>
+  </div>
+
+  <!-- ============ 保存済み記録 ============ -->
+  <div class="records">
+    <h2>保存済み記録</h2>
+    <div class="actions" style="margin-bottom: 10px;">
+      <button class="btn secondary" onclick="exportJson()">JSONで書き出し</button>
+    </div>
+    <div id="recordList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const TRAININGS = [
+    { name: "災害発生時の対応", required: 1 },
+    { name: "新興感染症発生時の対応", required: 1 },
+    { name: "非薬剤師への薬事衛生研修", required: 1 },
+    { name: "医薬品の安全使用研修", required: 2 },
+    { name: "業務手順書研修", required: 1 },
+    { name: "法令遵守体制の教育訓練", required: 1 },
+    { name: "高齢者虐待防止", required: 1 },
+    { name: "身体拘束適正化", required: 1 },
+    { name: "BCP研修", required: 1 },
+    { name: "BCP訓練", required: 1 },
+    { name: "感染症予防まん延防止", required: 1 }
+  ];
+
+  const STORAGE_KEY = "kenshu_chiku_records_v2";
+  const DRIVE_FOLDERS = {
+    chiku:   "https://drive.google.com/drive/folders/1r_ja7FIc8ssKfTR34qZE2_3uXn5rhUIT",
+    yakkyoku:"https://drive.google.com/drive/folders/1cglaYsCrO7lYaQH9uiFTWVkOD1zOYa8y",
+    kojin:   "https://drive.google.com/drive/folders/1yH7NvwiohvZouJOTDnMlmuvfVm0_cStN"
+  };
+  let memoEdited = false;
+  let currentPhotoDataUrl = null;
+  let pendingRecordId = null;
+
+  function init() {
+    const list = document.getElementById("trainingList");
+    list.innerHTML = TRAININGS.map(t => `
+      <label class="row">
+        <input type="checkbox" value="${t.name}" data-required="${t.required}" onchange="updateMemo()">
+        <span class="row-text">${t.name}<span class="req">（年${t.required}回）</span></span>
+      </label>
+    `).join("");
+
+    document.getElementById("hr-date").value = todayStr();
+    document.getElementById("bk-date").value = todayStr();
+    document.getElementById("hr-memo").addEventListener("input", () => { memoEdited = true; });
+    renderRecords();
+  }
+
+  function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
+    document.getElementById("tab-houree").classList.toggle("hidden", tab !== "houree");
+    document.getElementById("tab-benkyou").classList.toggle("hidden", tab !== "benkyou");
+    closeNextStep();
+  }
+
+  // ---------- 法令研修 ----------
+  function selectedTrainings() {
+    return [...document.querySelectorAll("#trainingList input:checked")].map(c => c.value);
+  }
+
+  function updateMemo() {
+    if (memoEdited) return;
+    const names = selectedTrainings();
+    document.getElementById("hr-memo").value = names.length === 0 ? "" : names.join("・") + "を実施。";
+  }
+
+  function saveHouree() {
+    const names = selectedTrainings();
+    const date = document.getElementById("hr-date").value;
+    const format = document.querySelector("input[name=hr-format]:checked")?.value;
+    const memo = document.getElementById("hr-memo").value.trim();
+
+    if (names.length === 0) { showToast("該当研修を1つ以上選んでください"); return; }
+    if (!date) { showToast("実施日を入力してください"); return; }
+
+    const record = {
+      id: Date.now(),
+      type: "houree",
+      date, trainings: names, format, memo,
+      savedAt: new Date().toISOString()
+    };
+    saveRecord(record);
+    showToast(`保存しました（法令研修 ${names.length}件）`);
+    clearHouree();
+  }
+
+  function clearHouree() {
+    document.querySelectorAll("#trainingList input:checked").forEach(c => c.checked = false);
+    document.querySelector("input[name=hr-format][value=オンライン]").checked = true;
+    document.getElementById("hr-date").value = todayStr();
+    document.getElementById("hr-memo").value = "";
+    memoEdited = false;
+  }
+
+  // ---------- 任意勉強会 ----------
+  function onPhotoSelected(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      currentPhotoDataUrl = ev.target.result;
+      const img = document.getElementById("bk-photo-preview");
+      img.src = currentPhotoDataUrl;
+      img.classList.add("show");
+      document.getElementById("bk-photo-clear").classList.add("show");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPhoto() {
+    currentPhotoDataUrl = null;
+    document.getElementById("bk-photo").value = "";
+    document.getElementById("bk-photo-preview").classList.remove("show");
+    document.getElementById("bk-photo-clear").classList.remove("show");
+  }
+
+  function saveBenkyou() {
+    const date = document.getElementById("bk-date").value;
+    const theme = document.getElementById("bk-theme").value.trim();
+    const lecturer = document.getElementById("bk-lecturer").value.trim();
+    const memo = document.getElementById("bk-memo").value.trim();
+
+    if (!date) { showToast("実施日を入力してください"); return; }
+    if (!theme && !currentPhotoDataUrl) { showToast("テーマを入れるか、写真を添付してください"); return; }
+
+    const record = {
+      id: Date.now(),
+      type: "benkyou",
+      date, theme, lecturer, memo,
+      photo: currentPhotoDataUrl,
+      driveUrl: null,
+      savedAt: new Date().toISOString()
+    };
+    saveRecord(record);
+
+    if (currentPhotoDataUrl) {
+      pendingRecordId = record.id;
+      showNextStep(record);
+    } else {
+      showToast("保存しました（任意勉強会）");
+    }
+    clearBenkyou();
+  }
+
+  function clearBenkyou() {
+    document.getElementById("bk-date").value = todayStr();
+    document.getElementById("bk-theme").value = "";
+    document.getElementById("bk-lecturer").value = "";
+    document.getElementById("bk-memo").value = "";
+    clearPhoto();
+  }
+
+  // ---------- 写真ありの場合の次ステップ ----------
+  function showNextStep(record) {
+    document.getElementById("next-step-box").classList.remove("hidden");
+    document.getElementById("drive-url").value = "";
+    document.getElementById("prompt-output").classList.add("hidden");
+  }
+
+  function closeNextStep() {
+    document.getElementById("next-step-box").classList.add("hidden");
+    pendingRecordId = null;
+  }
+
+  function openDriveFolder() {
+    window.open(DRIVE_FOLDERS.chiku, "_blank");
+  }
+
+  function generatePrompt() {
+    const url = document.getElementById("drive-url").value.trim();
+    if (!url) { showToast("Drive画像URLを貼り付けてください"); return; }
+
+    const records = loadRecords();
+    const record = records.find(r => r.id === pendingRecordId);
+    if (record) {
+      record.driveUrl = url;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      renderRecords();
+    }
+
+    const prompt = `研修記録を1件追加してください。
+
+種別: 任意勉強会（地区）
+実施日: ${record?.date || ""}
+テーマ: ${record?.theme || "（画像から読み取ってください）"}
+講師・主催: ${record?.lecturer || "（画像から読み取れれば）"}
+画像URL: ${url}
+
+上記URLの画像をOCRして、テーマ・講師名・実施日を補完してください。
+スプレッドシート(後で連携)の kenshu_records シートに以下の列順で1行追加するイメージで結果を出力してください:
+| 実施日 | テーマ | 区分 | 講師 | 写真URL | 備考 | 入力日時 |
+
+備考: ${record?.memo || "なし"}`;
+
+    document.getElementById("prompt-text").textContent = prompt;
+    document.getElementById("prompt-output").classList.remove("hidden");
+  }
+
+  function copyPrompt() {
+    const text = document.getElementById("prompt-text").textContent;
+    navigator.clipboard.writeText(text).then(
+      () => showToast("コピーしました。Claude にペーストしてください"),
+      () => showToast("コピーに失敗。テキストを手動選択してください")
+    );
+  }
+
+  // ---------- 記録管理 ----------
+  function saveRecord(record) {
+    const records = loadRecords();
+    records.unshift(record);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    renderRecords();
+  }
+
+  function loadRecords() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function renderRecords() {
+    const records = loadRecords();
+    const list = document.getElementById("recordList");
+    if (records.length === 0) {
+      list.innerHTML = '<div class="empty">まだ記録がありません</div>';
+      return;
+    }
+    list.innerHTML = records.map(r => {
+      if (r.type === "houree") {
+        return `<div class="record-item">
+          <span class="record-date">${r.date}</span>
+          <span class="badge">法令研修</span>
+          <span class="record-meta">${r.format}</span>
+          <span class="copy-link" onclick="copyRecord(${r.id})">📋 コピーして再登録</span>
+          <span class="delete-link" onclick="deleteRecord(${r.id})">削除</span>
+          <div class="record-items">${r.trainings.join("、")}</div>
+          ${r.memo ? `<div class="record-memo">${escapeHtml(r.memo)}</div>` : ""}
+        </div>`;
+      } else {
+        const photoHtml = r.photo
+          ? `<img class="record-thumb" src="${r.photo}" alt="写真">`
+          : "";
+        const driveHtml = r.driveUrl
+          ? `<div class="record-meta">Drive: <a href="${escapeHtml(r.driveUrl)}" target="_blank">${escapeHtml(r.driveUrl.slice(0,60))}…</a></div>`
+          : (r.photo ? `<div class="record-meta" style="color:var(--danger)">⚠ Drive未アップ</div>` : "");
+        return `<div class="record-item">
+          <span class="record-date">${r.date}</span>
+          <span class="badge benkyou">任意勉強会</span>
+          <span class="copy-link" onclick="copyRecord(${r.id})">📋 コピーして再登録</span>
+          <span class="delete-link" onclick="deleteRecord(${r.id})">削除</span>
+          <div class="record-items">${escapeHtml(r.theme || "(テーマ未記入)")}${r.lecturer ? ` ／ ${escapeHtml(r.lecturer)}` : ""}</div>
+          ${r.memo ? `<div class="record-memo">${escapeHtml(r.memo)}</div>` : ""}
+          ${photoHtml}
+          ${driveHtml}
+        </div>`;
+      }
+    }).join("");
+  }
+
+  function deleteRecord(id) {
+    if (!confirm("この記録を削除しますか？")) return;
+    const records = loadRecords().filter(r => r.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    renderRecords();
+    showToast("削除しました");
+  }
+
+  function copyRecord(id) {
+    const r = loadRecords().find(x => x.id === id);
+    if (!r) return;
+    if (r.type === "houree") {
+      switchTab("houree");
+      document.querySelectorAll("#trainingList input").forEach(c => {
+        c.checked = r.trainings.includes(c.value);
+      });
+      const fmt = document.querySelector(`input[name=hr-format][value="${r.format}"]`);
+      if (fmt) fmt.checked = true;
+      document.getElementById("hr-date").value = todayStr();
+      document.getElementById("hr-memo").value = r.memo || "";
+      memoEdited = true;
+      showToast("コピーしました。日付を確認して保存してください");
+    } else {
+      switchTab("benkyou");
+      document.getElementById("bk-date").value = todayStr();
+      document.getElementById("bk-theme").value = r.theme || "";
+      document.getElementById("bk-lecturer").value = r.lecturer || "";
+      document.getElementById("bk-memo").value = r.memo || "";
+      clearPhoto();
+      let msg = "コピーしました。日付を確認して保存してください";
+      if (r.photo || r.driveUrl) msg += "（写真は引き継ぎません）";
+      showToast(msg);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function exportJson() {
+    const records = loadRecords();
+    if (records.length === 0) { showToast("書き出す記録がありません"); return; }
+    // 画像Base64は重いので書き出し時に除外（driveUrlは残す）
+    const stripped = records.map(r => ({ ...r, photo: r.photo ? "(localOnly)" : null }));
+    const blob = new Blob([JSON.stringify(stripped, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `kenshu-chiku-${todayStr()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 1800);
+  }
+
+  init();
+</script>
+</body>
+</html>
