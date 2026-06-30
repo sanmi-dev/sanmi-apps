@@ -42,8 +42,11 @@
   .card-icon{width:36px;height:36px;border-radius:10px;background:#6F4E37;display:flex;align-items:center;justify-content:center;flex:none;}
   .card h3{font-family:'Shippori Mincho',serif;font-weight:600;font-size:17px;line-height:1.5;color:#33251A;flex:1;}
   .card p{font-size:14px;line-height:1.9;margin:14px 0 0 0;color:#5C4A3A;flex:1;}
-  .card-btn{display:inline-flex;align-items:center;gap:8px;margin-top:22px;background:#6F4E37;color:#F7F1E4;text-decoration:none;font-weight:700;font-size:14.5px;padding:11px 22px;border-radius:9px;align-self:flex-start;box-shadow:0 5px 13px rgba(111,78,55,.28);transition:background .2s ease;border:none;cursor:pointer;}
+  .card-actions{display:flex;align-items:center;gap:14px;margin-top:22px;flex-wrap:wrap;}
+  .card-btn{display:inline-flex;align-items:center;gap:8px;background:#6F4E37;color:#F7F1E4;text-decoration:none;font-weight:700;font-size:14.5px;padding:11px 22px;border-radius:9px;box-shadow:0 5px 13px rgba(111,78,55,.28);transition:background .2s ease;border:none;cursor:pointer;}
   .card-btn:hover{background:#5A3F2C;}
+  .card-dl{background:none;border:none;color:#8B6F55;font-size:13px;text-decoration:underline;cursor:pointer;padding:4px 6px;font-family:inherit;}
+  .card-dl:hover{color:#5A3F2C;}
 
   /* Coming Soon カード */
   .card--soon{background:rgba(255,255,255,.55);border:1px dashed rgba(43,38,34,.16);opacity:.72;}
@@ -137,7 +140,10 @@
           <h3>かかりつけ薬剤師シール作成アプリ</h3>
         </div>
         <p>かかりつけ薬剤師の同意書・指導用シールを、<br>必要事項を入力するだけできれいに印刷できます。</p>
-        <a href="https://sites.google.com/view/sanmig/kawano/かかりつけシール" target="_blank" class="card-btn">起動する →</a>
+        <div class="card-actions">
+          <a href="https://sites.google.com/view/sanmig/kawano/かかりつけシール" target="_blank" class="card-btn">起動する →</a>
+          <button type="button" class="card-dl" onclick="downloadApp('kakaritsuke-seal.html','かかりつけ薬剤師シール.html')">↓ ダウンロード</button>
+        </div>
       </div>
 
       <!-- No.02 吸入指導手帳シール -->
@@ -147,7 +153,10 @@
           <h3>吸入指導報告手帳用シールアプリ</h3>
         </div>
         <p>吸入指導の報告内容を、<br>手帳に貼れるシール形式で出力。<br>記録の手間をぐっと短縮します。</p>
-        <a href="https://sites.google.com/view/sanmig/kawano/吸入" target="_blank" class="card-btn">起動する →</a>
+        <div class="card-actions">
+          <a href="https://sites.google.com/view/sanmig/kawano/吸入" target="_blank" class="card-btn">起動する →</a>
+          <button type="button" class="card-dl" onclick="downloadApp('inhale-seal.html','吸入指導報告シール.html')">↓ ダウンロード</button>
+        </div>
       </div>
 
       <!-- No.03 患者情報シール -->
@@ -157,7 +166,10 @@
           <h3>患者情報シール印刷アプリ</h3>
         </div>
         <p>お薬手帳の個人情報ページ用シールを、<br>A4台紙にきれいに印刷。<br>面ごとに別の患者さんを入力できます。</p>
-        <a href="https://sites.google.com/view/sanmig/kawano/患者情報" target="_blank" class="card-btn">起動する →</a>
+        <div class="card-actions">
+          <a href="https://sites.google.com/view/sanmig/kawano/患者情報" target="_blank" class="card-btn">起動する →</a>
+          <button type="button" class="card-dl" onclick="downloadApp('patient-seal.html','患者情報シール.html')">↓ ダウンロード</button>
+        </div>
       </div>
 
       <!-- No.04 変更届（Coming Soon） -->
@@ -232,5 +244,23 @@
   </footer>
 
 </div>
+<script>
+function downloadApp(filename, saveAs){
+  const url = 'https://sanmi-dev.github.io/sanmi-apps/' + filename;
+  fetch(url).then(r => {
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.blob();
+  }).then(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = saveAs;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 100);
+  }).catch(err => {
+    alert('ダウンロード失敗: ' + err.message + '\n直接URLから保存してください:\n' + url);
+  });
+}
+</script>
 </body>
 </html>
