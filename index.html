@@ -80,6 +80,9 @@
   .contact-rows div{display:flex;gap:14px;}
   .contact-key{color:#A1876B;width:56px;flex:none;}
 
+  /* ── 問い合わせフォーム iframe ── */
+  .inquiry-frame{width:100%;border:none;background:transparent;min-height:520px;display:block;}
+
   /* ── フッター ── */
   .footer{margin-top:72px;padding:36px 0 56px 0;border-top:1px solid rgba(111,78,55,.16);display:flex;align-items:center;justify-content:center;gap:12px;color:#A1876B;font-size:13px;letter-spacing:.06em;}
   .footer .leaf{background:#C9B79C;}
@@ -142,7 +145,7 @@
         </div>
         <p>かかりつけ薬剤師の同意書・指導用シールを、<br>必要事項を入力するだけできれいに印刷できます。</p>
         <div class="card-actions">
-          <a href="https://sites.google.com/view/sanmig/kawano/かかりつけシール" target="_blank" class="card-btn">起動する →</a>
+          <a href="https://sites.google.com/view/sanmig/appDL/かかりつけシール" target="_blank" class="card-btn">起動する →</a>
           <button type="button" class="card-dl" onclick="downloadApp('kakaritsuke-seal.html','かかりつけ薬剤師シール.html')">↓ ダウンロード</button>
         </div>
       </div>
@@ -155,7 +158,7 @@
         </div>
         <p>吸入指導の報告内容を、<br>手帳に貼れるシール形式で出力。<br>記録の手間をぐっと短縮します。</p>
         <div class="card-actions">
-          <a href="https://sites.google.com/view/sanmig/kawano/吸入" target="_blank" class="card-btn">起動する →</a>
+          <a href="https://sites.google.com/view/sanmig/appDL/吸入" target="_blank" class="card-btn">起動する →</a>
           <button type="button" class="card-dl" onclick="downloadApp('inhale-seal.html','吸入指導報告シール.html')">↓ アプリ</button>
           <button type="button" class="card-dl" onclick="downloadApp('inhale-manual.pdf','吸入指導シール_操作マニュアル.pdf')">↓ マニュアル</button>
         </div>
@@ -169,7 +172,7 @@
         </div>
         <p>お薬手帳の個人情報ページ用シールを、<br>A4台紙にきれいに印刷。<br>面ごとに別の患者さんを入力できます。</p>
         <div class="card-actions">
-          <a href="https://sites.google.com/view/sanmig/kawano/患者情報" target="_blank" class="card-btn">起動する →</a>
+          <a href="https://sites.google.com/view/sanmig/appDL/患者情報" target="_blank" class="card-btn">起動する →</a>
           <button type="button" class="card-dl" onclick="downloadApp('patient-seal.html','患者情報シール.html')">↓ ダウンロード</button>
         </div>
       </div>
@@ -243,15 +246,8 @@
       </ol>
     </div>
     <div class="box">
-      <div class="badge" style="margin-bottom:28px;"><span class="leaf"></span>問い合わせ先</div>
-      <!-- ▼ TODO: 本番用の連絡先に差し替える -->
-      <div class="contact-label">管理者</div>
-      <div class="contact-name">情報システム担当</div>
-      <div class="contact-rows">
-        <div><span class="contact-key">メール</span><span>（後日設定）</span></div>
-        <div><span class="contact-key">内線</span><span>（後日設定）</span></div>
-        <div><span class="contact-key">受付</span><span>平日 9:00 – 17:00</span></div>
-      </div>
+      <div class="badge" style="margin-bottom:20px;"><span class="leaf"></span>お問い合わせ</div>
+      <iframe src="inquiry.html?app=portal" class="inquiry-frame" title="問い合わせフォーム" loading="lazy"></iframe>
     </div>
   </section>
 
