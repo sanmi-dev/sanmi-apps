@@ -328,8 +328,7 @@
     <div class="panel">
       <h2>実施形式</h2>
       <div class="radio-group">
-        <label class="row"><input type="radio" name="hr-format" value="集合"><span>集合</span></label>
-        <label class="row"><input type="radio" name="hr-format" value="オンライン" checked><span>オンライン</span></label>
+        <label class="row"><input type="radio" name="hr-format" value="集合" checked><span>集合</span></label>
         <label class="row"><input type="radio" name="hr-format" value="動画視聴"><span>動画視聴</span></label>
       </div>
     </div>
@@ -424,10 +423,8 @@
     { name: "業務手順書研修", required: 1 },
     { name: "法令遵守体制の教育訓練", required: 1 },
     { name: "高齢者虐待防止", required: 1 },
-    { name: "身体拘束適正化", required: 1 },
     { name: "BCP研修", required: 1 },
-    { name: "BCP訓練", required: 1 },
-    { name: "感染症予防まん延防止", required: 1 }
+    { name: "在宅薬学研修", required: 1 }
   ];
 
   const STORAGE_KEY = "kenshu_chiku_records_v2";
@@ -440,19 +437,39 @@
   let currentPhotoDataUrl = null;
   let pendingRecordId = null;
 
-  function init() {
-    const list = document.getElementById("trainingList");
-    list.innerHTML = TRAININGS.map(t => `
-      <label class="row">
-        <input type="checkbox" value="${t.name}" data-required="${t.required}" onchange="updateMemo()">
-        <span class="row-text">${t.name}<span class="req">（年${t.required}回）</span></span>
-      </label>
-    `).join("");
+  function fiscalYearStart() {
+    const now = new Date();
+    const y = now.getMonth() >= 5 ? now.getFullYear() : now.getFullYear() - 1;
+    return `${y}-06-01`;
+  }
 
+  function countDone(trainingName) {
+    const start = fiscalYearStart();
+    return loadRecords().filter(r =>
+      r.type === "houree" && r.date >= start && r.trainings?.includes(trainingName)
+    ).length;
+  }
+
+  function init() {
+    renderTrainingList();
     document.getElementById("hr-date").value = todayStr();
     document.getElementById("bk-date").value = todayStr();
     document.getElementById("hr-memo").addEventListener("input", () => { memoEdited = true; });
     renderRecords();
+  }
+
+  function renderTrainingList() {
+    const list = document.getElementById("trainingList");
+    list.innerHTML = TRAININGS.map(t => {
+      const done = countDone(t.name);
+      const left = Math.max(0, t.required - done);
+      const completed = left === 0;
+      const labelStyle = completed ? "text-decoration:line-through;opacity:0.5" : "";
+      return `<label class="row" style="${labelStyle}">
+        <input type="checkbox" value="${t.name}" data-required="${t.required}" onchange="updateMemo()"${completed ? " disabled" : ""}>
+        <span class="row-text">${t.name}<span class="req">（年${t.required}回・残${left}）</span></span>
+      </label>`;
+    }).join("");
   }
 
   function todayStr() {
@@ -496,11 +513,12 @@
     saveRecord(record);
     showToast(`保存しました（法令研修 ${names.length}件）`);
     clearHouree();
+    renderTrainingList();
   }
 
   function clearHouree() {
     document.querySelectorAll("#trainingList input:checked").forEach(c => c.checked = false);
-    document.querySelector("input[name=hr-format][value=オンライン]").checked = true;
+    document.querySelector("input[name=hr-format][value=集合]").checked = true;
     document.getElementById("hr-date").value = todayStr();
     document.getElementById("hr-memo").value = "";
     memoEdited = false;
@@ -675,6 +693,7 @@
     const records = loadRecords().filter(r => r.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     renderRecords();
+    renderTrainingList();
     showToast("削除しました");
   }
 
