@@ -301,6 +301,29 @@
     color: var(--muted);
   }
   .hidden { display: none !important; }
+  .plan-summary { display: flex; gap: 8px; margin-bottom: 14px; }
+  .plan-summary .card { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 8px; text-align: center; }
+  .plan-summary .card .num { font-size: 22px; font-weight: 600; }
+  .plan-summary .card .lbl { font-size: 11px; color: var(--muted); }
+  .plan-summary .card.done { background: #e5ecd4; }
+  .plan-summary .card.done .num { color: var(--accent); }
+  .plan-summary .card.left .num { color: #b5871a; }
+  .plan-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .plan-table th { text-align: left; padding: 8px 6px; font-size: 11px; color: var(--muted); border-bottom: 2px solid var(--line); font-weight: 500; }
+  .plan-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .plan-table tr.completed { opacity: 0.5; text-decoration: line-through; }
+  .plan-table select { font-size: 12px; padding: 3px 4px; border: 1px solid var(--line); border-radius: 4px; background: #fff; font-family: inherit; }
+  .status-badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 8px; }
+  .status-badge.done { background: #e5ecd4; color: var(--accent); }
+  .status-badge.pending { background: var(--tab-bg); color: var(--muted); }
+  .stock-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .stock-item:last-child { border-bottom: none; }
+  .stock-thumb { width: 50px; height: 50px; border-radius: 4px; border: 1px solid var(--line); object-fit: cover; background: var(--tab-bg); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .stock-info { flex: 1; min-width: 0; }
+  .stock-title { font-size: 13px; font-weight: 600; }
+  .stock-meta { font-size: 11px; color: var(--muted); }
+  .stock-tag { font-size: 10px; padding: 2px 8px; border-radius: 8px; background: #dbeafe; color: #1d5fa5; flex-shrink: 0; }
+  .stock-tag.ondemand { background: #fef3c7; color: #92610a; }
 </style>
 </head>
 <body>
@@ -311,6 +334,7 @@
   <div class="tabs">
     <div class="tab active" data-tab="houree" onclick="switchTab('houree')">法令研修</div>
     <div class="tab" data-tab="benkyou" onclick="switchTab('benkyou')">任意勉強会</div>
+    <div class="tab" data-tab="plan" onclick="switchTab('plan')">年間計画</div>
   </div>
 
   <!-- ============ 法令研修タブ ============ -->
@@ -380,6 +404,56 @@
     </div>
   </div>
 
+  <!-- ============ 年間計画タブ ============ -->
+  <div id="tab-plan" class="hidden">
+    <div class="plan-summary">
+      <div class="card"><div class="num" id="plan-total">0</div><div class="lbl">全研修</div></div>
+      <div class="card done"><div class="num" id="plan-done">0</div><div class="lbl">実施済み</div></div>
+      <div class="card left"><div class="num" id="plan-left">0</div><div class="lbl">未実施</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>研修スケジュール <span class="req" id="plan-fiscal-label"></span></h2>
+      <table class="plan-table">
+        <thead><tr><th>研修名</th><th>予定月</th><th>実施日</th><th>状態</th></tr></thead>
+        <tbody id="plan-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="savePlan()">予定月を保存</button>
+      <button class="btn secondary" onclick="exportPlanText()">計画表をコピー</button>
+    </div>
+
+    <div class="panel" style="margin-top: 14px;">
+      <h2>本部ストック <span class="req">外部研修・勉強会の情報共有</span></h2>
+      <div id="stockList"><div class="empty">まだストックがありません</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>ストックに追加</h2>
+      <input type="text" id="stk-title" placeholder="研修名・勉強会名" style="margin-bottom: 8px;">
+      <input type="date" id="stk-date" style="margin-bottom: 8px;">
+      <input type="text" id="stk-org" placeholder="主催（任意）" style="margin-bottom: 8px;">
+      <div class="radio-group" style="margin-bottom: 8px;">
+        <label class="row"><input type="radio" name="stk-type" value="外部研修" checked><span>外部研修</span></label>
+        <label class="row"><input type="radio" name="stk-type" value="オンデマンド"><span>オンデマンド</span></label>
+      </div>
+      <label for="stk-photo" class="photo-btn" style="margin-bottom: 8px;">📷 チラシ画像を添付</label>
+      <input type="file" id="stk-photo" class="photo-input" accept="image/*" onchange="onStockPhotoSelected(event)">
+      <img id="stk-photo-preview" class="photo-preview" alt="プレビュー">
+      <span id="stk-photo-clear" class="clear-photo" onclick="clearStockPhoto()">画像を取り消す</span>
+      <div class="actions" style="margin-top: 8px;">
+        <button class="btn" onclick="saveStock()">ストックに追加</button>
+        <button class="btn secondary" onclick="clearStock()">クリア</button>
+      </div>
+    </div>
+
+    <div style="background: #f5f3ee; border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-size: 12px; color: var(--muted); margin-top: 8px;">
+      店舗側は「参加した」を押すだけで任意勉強会の実績に記録されます。チラシ画像や詳細は本部が登録済み。
+    </div>
+  </div>
+
   <!-- ============ 保存後の Claude プロンプト表示 ============ -->
   <div id="next-step-box" class="next-step hidden">
     <h3>📨 写真ありの研修記録を保存しました。次の3ステップ:</h3>
@@ -428,6 +502,11 @@
   ];
 
   const STORAGE_KEY = "kenshu_chiku_records_v2";
+  const PLAN_KEY = "kenshu_plan_v1";
+  const STOCK_KEY = "kenshu_stock_v1";
+  let currentStockPhotoDataUrl = null;
+
+  const MONTHS = ["6月","7月","8月","9月","10月","11月","12月","1月","2月","3月","4月","5月","通年"];
   const DRIVE_FOLDERS = {
     chiku:   "https://drive.google.com/drive/folders/1r_ja7FIc8ssKfTR34qZE2_3uXn5rhUIT",
     yakkyoku:"https://drive.google.com/drive/folders/1cglaYsCrO7lYaQH9uiFTWVkOD1zOYa8y",
@@ -481,6 +560,8 @@
     document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
     document.getElementById("tab-houree").classList.toggle("hidden", tab !== "houree");
     document.getElementById("tab-benkyou").classList.toggle("hidden", tab !== "benkyou");
+    document.getElementById("tab-plan").classList.toggle("hidden", tab !== "plan");
+    if (tab === "plan") renderPlan();
     closeNextStep();
   }
 
@@ -748,6 +829,204 @@
     t.textContent = msg;
     t.classList.add("show");
     setTimeout(() => t.classList.remove("show"), 1800);
+  }
+
+  // ---------- 年間計画 ----------
+  function loadPlan() {
+    try { return JSON.parse(localStorage.getItem(PLAN_KEY)) || {}; }
+    catch { return {}; }
+  }
+
+  function fiscalYearLabel() {
+    const now = new Date();
+    const y = now.getMonth() >= 5 ? now.getFullYear() : now.getFullYear() - 1;
+    return `${y}年度（${y}/6 〜 ${y+1}/5）`;
+  }
+
+  function buildPlanRows() {
+    const rows = [];
+    TRAININGS.forEach(t => {
+      for (let i = 0; i < t.required; i++) {
+        rows.push({
+          name: t.name,
+          label: t.required > 1 ? `${t.name}（${i+1}回目）` : t.name,
+          key: t.required > 1 ? `${t.name}_${i+1}` : t.name
+        });
+      }
+    });
+    return rows;
+  }
+
+  function renderPlan() {
+    const plan = loadPlan();
+    const rows = buildPlanRows();
+    const start = fiscalYearStart();
+    const records = loadRecords().filter(r => r.type === "houree" && r.date >= start);
+
+    document.getElementById("plan-fiscal-label").textContent = fiscalYearLabel();
+
+    const tbody = document.getElementById("plan-tbody");
+    let doneCount = 0;
+
+    tbody.innerHTML = rows.map(row => {
+      const month = plan[row.key] || "";
+      const doneRecs = [];
+      let usedIds = new Set();
+      records.forEach(r => {
+        if (!usedIds.has(r.id) && r.trainings?.includes(row.name)) {
+          doneRecs.push(r);
+          usedIds.add(r.id);
+        }
+      });
+
+      const nth = row.key.includes("_") ? parseInt(row.key.split("_")[1]) : 1;
+      const doneRec = doneRecs[nth - 1];
+      const isDone = !!doneRec;
+      if (isDone) doneCount++;
+
+      const monthOptions = MONTHS.map(m =>
+        `<option value="${m}"${m === month ? " selected" : ""}>${m}</option>`
+      ).join("");
+
+      const statusHtml = isDone
+        ? `<span class="status-badge done">済</span>`
+        : `<span class="status-badge pending">—</span>`;
+
+      return `<tr class="${isDone ? "completed" : ""}">
+        <td>${row.label}</td>
+        <td><select data-plan-key="${row.key}" onchange="onPlanMonthChange()"><option value="">—</option>${monthOptions}</select></td>
+        <td style="font-size:12px;">${doneRec ? doneRec.date : "—"}</td>
+        <td>${statusHtml}</td>
+      </tr>`;
+    }).join("");
+
+    document.getElementById("plan-total").textContent = rows.length;
+    document.getElementById("plan-done").textContent = doneCount;
+    document.getElementById("plan-left").textContent = rows.length - doneCount;
+
+    renderStockList();
+  }
+
+  function onPlanMonthChange() {}
+
+  function savePlan() {
+    const plan = {};
+    document.querySelectorAll("[data-plan-key]").forEach(sel => {
+      if (sel.value) plan[sel.dataset.planKey] = sel.value;
+    });
+    localStorage.setItem(PLAN_KEY, JSON.stringify(plan));
+    showToast("予定月を保存しました");
+  }
+
+  function exportPlanText() {
+    const plan = loadPlan();
+    const rows = buildPlanRows();
+    const start = fiscalYearStart();
+    const records = loadRecords().filter(r => r.type === "houree" && r.date >= start);
+
+    let text = `研修実施計画　${fiscalYearLabel()}\n\n`;
+    text += "研修名\t予定月\t実施日\t状態\n";
+    rows.forEach(row => {
+      const month = plan[row.key] || "未定";
+      const nth = row.key.includes("_") ? parseInt(row.key.split("_")[1]) : 1;
+      const doneRecs = records.filter(r => r.trainings?.includes(row.name));
+      const doneRec = doneRecs[nth - 1];
+      text += `${row.label}\t${month}\t${doneRec ? doneRec.date : "—"}\t${doneRec ? "済" : "未"}\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(
+      () => showToast("計画表をコピーしました"),
+      () => showToast("コピーに失敗しました")
+    );
+  }
+
+  // ---------- 本部ストック ----------
+  function loadStock() {
+    try { return JSON.parse(localStorage.getItem(STOCK_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function renderStockList() {
+    const items = loadStock();
+    const list = document.getElementById("stockList");
+    if (items.length === 0) {
+      list.innerHTML = '<div class="empty">まだストックがありません</div>';
+      return;
+    }
+    list.innerHTML = items.map(s => {
+      const thumbHtml = s.photo
+        ? `<img class="stock-thumb" src="${s.photo}" alt="">`
+        : `<div class="stock-thumb">📄</div>`;
+      const tagClass = s.stype === "オンデマンド" ? "stock-tag ondemand" : "stock-tag";
+      return `<div class="stock-item">
+        ${thumbHtml}
+        <div class="stock-info">
+          <div class="stock-title">${escapeHtml(s.title)}</div>
+          <div class="stock-meta">${s.date || "日程未定"}${s.org ? ` ・ ${escapeHtml(s.org)}` : ""} ・ 本部登録</div>
+        </div>
+        <span class="${tagClass}">${escapeHtml(s.stype)}</span>
+        <span class="delete-link" onclick="deleteStock(${s.id})">削除</span>
+      </div>`;
+    }).join("");
+  }
+
+  function onStockPhotoSelected(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      currentStockPhotoDataUrl = ev.target.result;
+      const img = document.getElementById("stk-photo-preview");
+      img.src = currentStockPhotoDataUrl;
+      img.classList.add("show");
+      document.getElementById("stk-photo-clear").classList.add("show");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearStockPhoto() {
+    currentStockPhotoDataUrl = null;
+    document.getElementById("stk-photo").value = "";
+    document.getElementById("stk-photo-preview").classList.remove("show");
+    document.getElementById("stk-photo-clear").classList.remove("show");
+  }
+
+  function saveStock() {
+    const title = document.getElementById("stk-title").value.trim();
+    const date = document.getElementById("stk-date").value;
+    const org = document.getElementById("stk-org").value.trim();
+    const stype = document.querySelector("input[name=stk-type]:checked")?.value || "外部研修";
+
+    if (!title) { showToast("研修名を入力してください"); return; }
+
+    const item = {
+      id: Date.now(),
+      title, date, org, stype,
+      photo: currentStockPhotoDataUrl,
+      savedAt: new Date().toISOString()
+    };
+    const items = loadStock();
+    items.unshift(item);
+    localStorage.setItem(STOCK_KEY, JSON.stringify(items));
+    renderStockList();
+    clearStock();
+    showToast("ストックに追加しました");
+  }
+
+  function clearStock() {
+    document.getElementById("stk-title").value = "";
+    document.getElementById("stk-date").value = "";
+    document.getElementById("stk-org").value = "";
+    document.querySelector("input[name=stk-type][value=外部研修]").checked = true;
+    clearStockPhoto();
+  }
+
+  function deleteStock(id) {
+    if (!confirm("このストックを削除しますか？")) return;
+    const items = loadStock().filter(s => s.id !== id);
+    localStorage.setItem(STOCK_KEY, JSON.stringify(items));
+    renderStockList();
+    showToast("削除しました");
   }
 
   init();
