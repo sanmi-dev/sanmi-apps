@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ファビコン一覧ビューア</title>
-<link rel="icon" type="image/png" href="https://sanmi-dev.github.io/sanmi-apps/aikon-icon.png">
-<link rel="apple-touch-icon" href="https://sanmi-dev.github.io/sanmi-apps/aikon-icon.png">
+<link rel="icon" type="image/png" href="https://sanmi-dev.github.io/sanmi-apps/rabbit-coffee-icon.png">
+<link rel="apple-touch-icon" href="https://sanmi-dev.github.io/sanmi-apps/rabbit-coffee-icon.png">
 <meta name="apple-mobile-web-app-title" content="アイコン一覧">
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -13,12 +13,14 @@
        background:#f8f9fa;color:#202124;padding:16px;-webkit-text-size-adjust:100%;}
   header{max-width:760px;margin:0 auto 14px;}
   h1{font-size:18px;margin-bottom:6px;}
+  h1 .titleicon{width:24px;height:24px;border-radius:6px;vertical-align:-6px;margin-right:8px;
+                box-shadow:0 1px 3px rgba(0,0,0,.15);}
   .lead{font-size:12.5px;color:#5f6368;line-height:1.7;}
   .lead code{background:#eef1f4;border-radius:4px;padding:1px 5px;font-size:12px;}
   .wrap{max-width:760px;margin:0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch;}
   table{border-collapse:separate;border-spacing:6px;margin:0 auto;}
   th,td{text-align:center;}
-  th.col{font-size:11px;color:#5f6368;font-weight:600;padding-bottom:2px;min-width:56px;}
+  th.col{font-size:11px;color:#5f6368;font-weight:600;padding-bottom:2px;min-width:66px;}
   th.col b{display:block;font-size:13px;color:#202124;}
   th.row{font-size:11px;color:#5f6368;font-weight:600;text-align:right;padding-right:2px;
          white-space:nowrap;}
@@ -30,6 +32,8 @@
   td .cell.copied{border-color:#1e8e3e;background:#e6f4ea;}
   td img{width:48px;height:48px;border-radius:11px;box-shadow:0 1px 4px rgba(0,0,0,.1);}
   td .code{font-size:13px;font-weight:700;color:#1a73e8;letter-spacing:.5px;}
+  td .assign{font-size:9.5px;line-height:1.25;color:#188038;background:#e6f4ea;
+             border-radius:6px;padding:2px 5px;max-width:74px;text-align:center;}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
          background:#202124;color:#fff;font-size:13px;padding:10px 16px;border-radius:22px;
          opacity:0;pointer-events:none;transition:.2s;max-width:90vw;text-align:center;}
@@ -39,11 +43,12 @@
 </head>
 <body>
 <header>
-  <h1>ファビコン一覧ビューア</h1>
+  <h1><img class="titleicon" src="https://sanmi-dev.github.io/sanmi-apps/rabbit-coffee-icon.png" alt="">ファビコン一覧ビューア</h1>
   <p class="lead">
     縦が<b>デザイン</b>（<code>a</code>〜<code>f</code>）、横が<b>色</b>（<code>1</code>〜<code>7</code>）。
     差し替えを頼むときは <code>d2</code> のように番号で伝えてください。
-    アイコンをタップすると番号がコピーされます。
+    アイコンをタップすると番号がコピーされます。<br>
+    <span style="color:#188038;">緑のラベル</span>＝すでにそのアプリに設定済みのアイコンです。
   </p>
 </header>
 
@@ -77,6 +82,14 @@
     { n:'6', color:'rose',   label:'rose' },
     { n:'7', color:'teal',   label:'teal' }
   ];
+
+  // 設定済み: 番号 → 設定先アプリ（blueprint-reference のファビコン設定状況表と同期）
+  var ASSIGN = {
+    a1:'法令文書配布', a3:'ポータル',   a5:'変更届',
+    b1:'かかりつけ',   b3:'患者情報',   b5:'吸入指導',
+    c1:'照合チェッカー', c2:'業務日誌', c4:'勉強会', c5:'アプリ集約hub', c6:'処方箋枚数', c7:'法令ビューワ',
+    d1:'このビューア'
+  };
 
   function fileFor(family, color){
     return color ? family + '-' + color + '-icon.png' : family + '-icon.png';
@@ -113,7 +126,8 @@
       cell.setAttribute('data-file', file);
       cell.innerHTML =
         '<img src="' + BASE + file + '" alt="' + file + '" loading="lazy">' +
-        '<span class="code">' + code + '</span>';
+        '<span class="code">' + code + '</span>' +
+        (ASSIGN[code] ? '<span class="assign">' + ASSIGN[code] + '</span>' : '');
       cell.addEventListener('click', function(){ copyCode(code, cell); });
       td.appendChild(cell);
       tr.appendChild(td);
