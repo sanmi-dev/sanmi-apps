@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ファビコン一覧ビューア</title>
+<link rel="icon" type="image/png" href="https://sanmi-dev.github.io/sanmi-apps/aikon-icon.png">
+<link rel="apple-touch-icon" href="https://sanmi-dev.github.io/sanmi-apps/aikon-icon.png">
+<meta name="apple-mobile-web-app-title" content="アイコン一覧">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+       background:#f8f9fa;color:#202124;padding:16px;-webkit-text-size-adjust:100%;}
+  header{max-width:760px;margin:0 auto 14px;}
+  h1{font-size:18px;margin-bottom:6px;}
+  .lead{font-size:12.5px;color:#5f6368;line-height:1.7;}
+  .lead code{background:#eef1f4;border-radius:4px;padding:1px 5px;font-size:12px;}
+  .wrap{max-width:760px;margin:0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{border-collapse:separate;border-spacing:6px;margin:0 auto;}
+  th,td{text-align:center;}
+  th.col{font-size:11px;color:#5f6368;font-weight:600;padding-bottom:2px;min-width:56px;}
+  th.col b{display:block;font-size:13px;color:#202124;}
+  th.row{font-size:11px;color:#5f6368;font-weight:600;text-align:right;padding-right:2px;
+         white-space:nowrap;}
+  th.row b{display:block;font-size:14px;color:#202124;}
+  td .cell{display:flex;flex-direction:column;align-items:center;gap:3px;
+           background:#fff;border:1px solid #e2e5e9;border-radius:12px;padding:8px 4px 6px;
+           cursor:pointer;transition:.12s;}
+  td .cell:hover{border-color:#1a73e8;box-shadow:0 2px 8px rgba(26,115,232,.15);}
+  td .cell.copied{border-color:#1e8e3e;background:#e6f4ea;}
+  td img{width:48px;height:48px;border-radius:11px;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+  td .code{font-size:13px;font-weight:700;color:#1a73e8;letter-spacing:.5px;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+         background:#202124;color:#fff;font-size:13px;padding:10px 16px;border-radius:22px;
+         opacity:0;pointer-events:none;transition:.2s;max-width:90vw;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  footer{max-width:760px;margin:16px auto 0;font-size:11.5px;color:#9aa0a6;line-height:1.7;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ファビコン一覧ビューア</h1>
+  <p class="lead">
+    縦が<b>デザイン</b>（<code>a</code>〜<code>f</code>）、横が<b>色</b>（<code>1</code>〜<code>7</code>）。
+    差し替えを頼むときは <code>d2</code> のように番号で伝えてください。
+    アイコンをタップすると番号がコピーされます。
+  </p>
+</header>
+
+<div class="wrap">
+  <table id="grid"></table>
+</div>
+
+<footer>
+  素材原本: <code>fabiconicons\</code> / 公開: <code>sanmi-dev.github.io/sanmi-apps/{デザイン名}-icon.png</code><br>
+  プロジェクト#15 ファビコン管理ツール
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  var BASE = 'https://sanmi-dev.github.io/sanmi-apps/';
+  var ROWS = [
+    { key:'a', family:'aikon',         label:'aikon' },
+    { key:'b', family:'coffee',        label:'coffee' },
+    { key:'c', family:'stove',         label:'stove' },
+    { key:'d', family:'rabbit-coffee', label:'rabbit-coffee' },
+    { key:'e', family:'rabbit-drip',   label:'rabbit-drip' },
+    { key:'f', family:'rabbit-sort',   label:'rabbit-sort' }
+  ];
+  var COLS = [
+    { n:'1', color:'',       label:'default' },
+    { n:'2', color:'amber',  label:'amber' },
+    { n:'3', color:'blue',   label:'blue' },
+    { n:'4', color:'green',  label:'green' },
+    { n:'5', color:'purple', label:'purple' },
+    { n:'6', color:'rose',   label:'rose' },
+    { n:'7', color:'teal',   label:'teal' }
+  ];
+
+  function fileFor(family, color){
+    return color ? family + '-' + color + '-icon.png' : family + '-icon.png';
+  }
+
+  var table = document.getElementById('grid');
+
+  // header row
+  var thead = document.createElement('tr');
+  thead.appendChild(document.createElement('th'));
+  COLS.forEach(function(c){
+    var th = document.createElement('th');
+    th.className = 'col';
+    th.innerHTML = '<b>' + c.n + '</b>' + c.label;
+    thead.appendChild(th);
+  });
+  table.appendChild(thead);
+
+  // body rows
+  ROWS.forEach(function(r){
+    var tr = document.createElement('tr');
+    var rh = document.createElement('th');
+    rh.className = 'row';
+    rh.innerHTML = '<b>' + r.key + '</b>' + r.label;
+    tr.appendChild(rh);
+
+    COLS.forEach(function(c){
+      var td = document.createElement('td');
+      var code = r.key + c.n;
+      var file = fileFor(r.family, c.color);
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.setAttribute('data-code', code);
+      cell.setAttribute('data-file', file);
+      cell.innerHTML =
+        '<img src="' + BASE + file + '" alt="' + file + '" loading="lazy">' +
+        '<span class="code">' + code + '</span>';
+      cell.addEventListener('click', function(){ copyCode(code, cell); });
+      td.appendChild(cell);
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+
+  var toast = document.getElementById('toast');
+  var toastTimer = null;
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 1600);
+  }
+  function copyCode(code, cell){
+    var done = function(){
+      cell.classList.add('copied');
+      setTimeout(function(){ cell.classList.remove('copied'); }, 700);
+      showToast(code + ' をコピーしました');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).then(done, function(){ fallback(code); done(); });
+    } else { fallback(code); done(); }
+  }
+  function fallback(text){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta);
+  }
+</script>
+</body>
+</html>
