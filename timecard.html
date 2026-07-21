@@ -43,10 +43,46 @@
     <p class="redirecting" id="redirecting" style="display:none;">アプリを開いています…</p>
   </div>
 <script>
+  // 起動挙動の分岐（Android/iOS別）
+  //
+  // 【背景】
+  // Android のホーム画面追加（WebAPK）による standalone 起動では、GAS iframe内の
+  // `<input type="file" capture="environment">` がカメラを直接起動せず、
+  // ギャラリー選択ダイアログに化ける不具合がある（実機確認済み）。
+  // 通常の Chrome タブでは正常動作するため、Android では intent:// スキームで
+  // Chrome ブラウザに明示転送してこの状態を回避する。
+  //
+  // iOS は従来どおり standalone から直接 exec URL へリダイレクトすれば
+  // カメラは正常起動するため触らない。
   var EXEC = document.getElementById('openBtn').getAttribute('href');
+  var ua = navigator.userAgent;
+  var isIOS = /iP(hone|ad|od)/.test(ua);
+  var isAndroid = /Android/i.test(ua);
+  var isLine = /Line\//i.test(ua);
   var standalone = window.navigator.standalone === true
                 || window.matchMedia('(display-mode: standalone)').matches;
-  if (standalone) {
+
+  if (isLine) {
+    // LINE内蔵ブラウザ: WebView なのでカメラ撮影・PDFダウンロードが動かない。開かせない。
+    document.getElementById('openBtn').style.display = 'none';
+    document.getElementById('hint').innerHTML =
+      '<b style="color:#a8462b;">⚠ LINEのブラウザで開いています</b><br><br>'
+      + 'この画面のままだと、タイムカードの<b>カメラ撮影</b>と<b>PDF保存</b>ができません。<br><br>'
+      + '<b>画面右下の「…」（メニュー）</b>をタップして、<br>'
+      + '　・Androidの人 → <b>「他のアプリで開く」→ Chrome</b><br>'
+      + '　・iPhoneの人 → <b>「Safariで開く」</b><br>'
+      + 'を選んでください。';
+  } else if (isAndroid && standalone) {
+    // Chrome を明示指定して開く intent URL に差し替え（フォールバック=通常URL）
+    var chromeIntent = 'intent://' + EXEC.replace(/^https?:\/\//, '')
+      + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='
+      + encodeURIComponent(EXEC) + ';end';
+    var btn = document.getElementById('openBtn');
+    btn.setAttribute('href', chromeIntent);
+    document.getElementById('hint').innerHTML =
+      '<b>Android：</b>下のボタンで <b>Chrome</b> が開き、アプリが表示されます。<br>'
+      + 'ホーム画面のアイコンで直接開くとカメラ撮影ボタンでギャラリー選択が出てしまう不具合があるため、この画面を経由して Chrome に切り替えています。';
+  } else if (isIOS && standalone) {
     document.getElementById('hint').style.display = 'none';
     document.getElementById('redirecting').style.display = 'block';
     window.location.replace(EXEC);
