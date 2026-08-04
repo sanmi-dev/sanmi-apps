@@ -26,7 +26,11 @@
   <img class="icon" src="https://sanmi-dev.github.io/sanmi-apps/nisshi-icon.png" alt="">
   <h1>業務日誌・ビューア</h1>
   <p class="sub">表紙・日次・一覧・月次の閲覧と印刷</p>
-  <a class="open" id="openBtn" href="https://script.google.com/a/macros/sanmi-g.com/s/AKfycbzzoXY28vSPl9JZBnmuAPWErlT9QWfBY6uzt22SEeg-xycaFwtv1283W10ddml2Eaa6/exec">ビューアを開く</a>
+  <!-- 2026-08-04: 公開範囲を ANYONE に変えたので URL の形が変わった。
+       旧: /a/macros/sanmi-g.com/s/.../exec  ← sanmi-g.com の人向けの入口。gmail では Google に弾かれる
+       新: /macros/s/.../exec               ← いまの形
+       正しい URL は Apps Script API の entryPoints[].webApp.url で確認できる。 -->
+  <a class="open" id="openBtn" href="https://script.google.com/macros/s/AKfycbzzoXY28vSPl9JZBnmuAPWErlT9QWfBY6uzt22SEeg-xycaFwtv1283W10ddml2Eaa6/exec">ビューアを開く</a>
   <div class="hint" id="hint"><b>iPhone：</b>共有 → <b>ホーム画面に追加</b>。ホーム画面では「日誌閲覧」と表示されます。</div>
   <p class="redirecting" id="redirecting" style="display:none">ビューアを開いています…</p>
 </div><script>
