@@ -87,7 +87,7 @@ textarea{resize:vertical}
           </text>
         </svg>
       </span>
-      <div><h1>吸入指導シール <span style="font-size:11px;font-weight:400;color:#8bb8d0">v1.9</span></h1><p>令和8年度改定対応（30点・6か月に1回）</p></div>
+      <div><h1>吸入指導シール <span style="font-size:11px;font-weight:400;color:#8bb8d0">v1.10</span></h1><p>令和8年度改定対応（30点・6か月に1回）</p></div>
     </div>
     <button class="settings-btn" onclick="openSettings()">⚙</button>
   </header>
@@ -239,6 +239,8 @@ const DRUGS=[
 ];
 const COMMON_CHECKS=["吸入前の息吐き（残気排出）","息止め 3〜5秒以上"];
 const GARGLE="うがい実施";
+// 根拠: イナビル・リレンザの患者向医薬品ガイド＝息止め2〜3秒・強く吸う/長く息を止めると失神の報告（2026-10-08）
+const FLU_CHECKS=["吸入前の息吐き（吸入口に向けない）","息止め 2〜3秒","強く吸いすぎない"];
 const DEVICE_CHECKS={
 "DPI共通":["薬剤セット操作","速く深い吸入","デバイスの正しい保持"],
 "エリプタ":["カバー開閉でセット完了の理解"],
@@ -251,15 +253,17 @@ const DEVICE_CHECKS={
 "pMDI共通":["噴射と吸入の同調","ゆっくり深く吸入","よく振る（使用前）","スペーサー使用有無"],
 "エアロスフィア":["週1回水洗浄の説明"],
 "レスピマット":["カートリッジ装着（初回）","透明ケースの回転操作","噴霧ボタンと吸入の同調"],
-"専用容器":["スライド操作（①→②順）","容器を立ててトントン","看視下吸入実施"],
+"専用容器":["容器を立ててトントン","スライド操作（①→②順）","①②ともう一度繰り返す","看視下吸入実施"],
 "ネブライザー":["生食での懸濁","ジェット式ネブライザー使用","看視下吸入実施"],
-"ディスクハラー":["ブリスターの穿刺（専用針の操作）","トレイの引き出し・押し込み","水平に保持して深く吸入"],
+"ディスクハラー":["ディスクのセット","フタを立てて穴をあける","トレイの引き出し・押し込み","1回2ブリスターを吸入"],
 };
 const FOCUS_OPTIONS=["息止め3秒以上","うがい必須","吸入力確認","スペーサー検討","デバイス変更検討","残量確認方法","保管方法"];
 const TYPE_LABELS={DPI:"DPI（ドライパウダー）",pMDI:"pMDI（加圧噴霧式）",SMI:"SMI（ソフトミスト）","ネブライザー":"ネブライザー"};
 
 function getChecks(drug){
   if(!drug)return[];
+  if(drug.type==="ネブライザー")return[...(DEVICE_CHECKS[drug.device]||[])];
+  if(isInfluenza(drug))return[...FLU_CHECKS,...(DEVICE_CHECKS[drug.device]||[])];
   const c=[...COMMON_CHECKS];
   if(drug.hasICS)c.push(GARGLE);
   if(drug.type==="DPI"&&drug.device!=="専用容器")c.push(...(DEVICE_CHECKS["DPI共通"]||[]));
