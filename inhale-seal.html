@@ -87,7 +87,7 @@ textarea{resize:vertical}
           </text>
         </svg>
       </span>
-      <div><h1>吸入指導シール <span style="font-size:11px;font-weight:400;color:#8bb8d0">v1.10</span></h1><p>令和8年度改定対応（30点・6か月に1回）</p></div>
+      <div><h1>吸入指導シール <span style="font-size:11px;font-weight:400;color:#8bb8d0">v1.11</span></h1><p>令和8年度改定対応（30点・6か月に1回）</p></div>
     </div>
     <button class="settings-btn" onclick="openSettings()">⚙</button>
   </header>
@@ -213,7 +213,7 @@ const DRUGS=[
 {name:"オーキシス",device:"タービュヘイラー",type:"DPI",category:"LABA",disease:["COPD"],hasICS:false},
 {name:"フルタイド ディスカス",device:"ディスカス",type:"DPI",category:"ICS",disease:["喘息"],hasICS:true},
 {name:"アドエア ディスカス",device:"ディスカス",type:"DPI",category:"ICS/LABA",disease:["喘息","COPD"],hasICS:true},
-{name:"セレベント ディスカス",device:"ディスカス",type:"LABA",disease:["喘息","COPD"],hasICS:false},
+{name:"セレベント ディスカス",device:"ディスカス",type:"DPI",category:"LABA",disease:["喘息","COPD"],hasICS:false},
 {name:"アズマネックス",device:"ツイストヘラー",type:"DPI",category:"ICS",disease:["喘息"],hasICS:true},
 {name:"オンブレス",device:"ブリーズヘラー",type:"DPI",category:"LABA",disease:["COPD"],hasICS:false},
 {name:"シーブリ",device:"ブリーズヘラー",type:"DPI",category:"LAMA",disease:["COPD"],hasICS:false},
@@ -229,7 +229,9 @@ const DRUGS=[
 {name:"キュバール",device:"エアゾール",type:"pMDI",category:"ICS",disease:["喘息"],hasICS:true},
 {name:"サルタノール",device:"エアゾール",type:"pMDI",category:"SABA",disease:["喘息","COPD"],hasICS:false},
 {name:"メプチンエアー",device:"エアゾール",type:"pMDI",category:"SABA",disease:["喘息","COPD"],hasICS:false},
+{name:"アトロベント",device:"エアゾール",type:"pMDI",category:"SAMA",disease:["喘息","COPD"],hasICS:false},
 {name:"ベロテック",device:"エアゾール",type:"pMDI",category:"SABA",disease:["COPD"],hasICS:false},
+{name:"ビベスピ",device:"エアロスフィア",type:"pMDI",category:"LAMA/LABA",disease:["COPD"],hasICS:false},
 {name:"ビレーズトリ",device:"エアロスフィア",type:"pMDI",category:"ICS/LABA/LAMA",disease:["喘息","COPD"],hasICS:true},
 {name:"スピリーバ レスピマット",device:"レスピマット",type:"SMI",category:"LAMA",disease:["喘息","COPD"],hasICS:false},
 {name:"スピオルト レスピマット",device:"レスピマット",type:"SMI",category:"LAMA/LABA",disease:["COPD"],hasICS:false},
@@ -272,6 +274,8 @@ function getChecks(drug){
   return c;
 }
 function isInfluenza(d){return d&&d.disease.includes("インフルエンザ")}
+// 抗インフル薬は息止め2〜3秒なので「息止め3秒以上」は出さない（矛盾防止）
+function getFocusOptions(drug){return isInfluenza(drug)?FOCUS_OPTIONS.filter(f=>f!=="息止め3秒以上"):FOCUS_OPTIONS}
 function todayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
@@ -343,6 +347,7 @@ function onDrugChange(){
   evaluation="◎";checkStates={};isSupervised=true;
   const checks=getChecks(selectedDrug);
   checks.forEach(c=>{checkStates[c]="良"});
+  focusItems=focusItems.filter(f=>getFocusOptions(selectedDrug).includes(f));
   buildEvalBtns();buildChecks();buildFocusBtns();
 }
 
@@ -400,7 +405,7 @@ function buildChecks(){
 // ── Focus ──
 function buildFocusBtns(){
   const box=document.getElementById('focus-btns');box.innerHTML='';
-  FOCUS_OPTIONS.forEach(item=>{
+  getFocusOptions(selectedDrug).forEach(item=>{
     const b=document.createElement('button');
     b.className='chip-btn'+(focusItems.includes(item)?' active':'');
     b.textContent=item;
