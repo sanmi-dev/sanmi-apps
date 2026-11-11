@@ -197,9 +197,19 @@
   });
   document.addEventListener('click', function () { if (state === 'count') toList(); });
 
-  try { window.focus(); } catch (e) { /* 何もしない */ }
-  fetchStores();
-  if (saved) startCount(); else toList();
+  // ?store=002 のように店を指定されたら、選ばずにすぐその店へ移る
+  // （Screenlite はテレビでリモコン入力をページに渡さないため、Kiosk URL に店を入れて使う）
+  const m = /[?&]store=([^&#]+)/.exec(location.search);
+  let urlStore = '';
+  try { urlStore = m ? decodeURIComponent(m[1]) : ''; } catch (e) { urlStore = ''; }
+  if (urlStore && urlStore.length <= 64) {
+    state = 'gone';
+    go(urlStore);
+  } else {
+    try { window.focus(); } catch (e) { /* 何もしない */ }
+    fetchStores();
+    if (saved) startCount(); else toList();
+  }
 </script>
 </body>
 </html>
