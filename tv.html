@@ -94,7 +94,11 @@
     show('title', true); show('hint', true);
     show('sub', false); show('count', false);
     if (!storageOk) { $('note').textContent = 'このテレビは店舗を覚えられません（電源を入れ直すと選び直しになります）'; show('note', true); }
-    if (stores) renderList(); else { $('msg').textContent = '店舗の一覧を読み込んでいます…'; show('msg', true); }
+    if (stores) renderList();
+    else {
+      $('msg').textContent = '店舗の一覧を読み込んでいます…'; show('msg', true);
+      if (!loading) fetchStores();   // カウント中に取得が失敗していた場合も取り直す
+    }
   }
 
   function renderList() {
@@ -140,8 +144,15 @@
     go(s.id);
   }
 
+  let loading = false;
   function fetchStores() {
-    fetch(EXEC + '?mode=stores').then(function (r) { return r.json(); }).then(function (d) {
+    if (loading) return;
+    loading = true;
+    clearTimeout(retryTimer); retryTimer = null;
+    // 応答が返らないときに止まらないよう 30 秒で打ち切る
+    const timeout = new Promise(function (_, reject) { setTimeout(function () { reject(new Error('timeout')); }, 30000); });
+    Promise.race([fetch(EXEC + '?mode=stores').then(function (r) { return r.json(); }), timeout]).then(function (d) {
+      loading = false;
       const arr = d && Array.isArray(d.stores) ? d.stores : null;
       if (!arr) throw new Error('bad');
       stores = arr.filter(function (s) { return s && typeof s.id === 'string' && s.id; })
@@ -153,8 +164,9 @@
       }
       if (state === 'list') renderList();
     }).catch(function () {
+      loading = false;
       stores = null;
-      if (state === 'list') renderList();   // 失敗文言と再取得。カウント中はそのまま流す
+      if (state === 'list') renderList();   // 失敗文言と1分後の再取得。カウント中はそのまま流す（一覧へ移ったら toList が取り直す）
     });
   }
 
