@@ -4,14 +4,190 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>掲示物（テレビ）</title>
-<!-- テレビ用サイネージの短い入口。keiji-app の共通URL（?mode=tv・店舗はテレビ画面で選ぶ）へ転送するだけ。 -->
-<meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbyvwW1LHg8S6ddtlIIR1V2Yhh5NqTINsfc9zNIEXLgB_LxFMnXF1zcGSo2Q1OHZaiDG/exec?mode=tv">
-<style>html,body{margin:0;height:100%;background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;font-size:40px;}</style>
+<!-- テレビ用サイネージの入口。店舗選択はここ（GAS の外）で行い、keiji-app の ?mode=tv&store=ID へ移る。
+     GAS の画面は二重構造でリモコンのキーが届かないため。 -->
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #fff; font-family: sans-serif; }
+  #box { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; box-sizing: border-box; }
+  #title { font-size: 44px; margin: 0 0 8px; }
+  #hint { font-size: 24px; color: #aaa; margin: 0 0 24px; }
+  #note { font-size: 24px; color: #ffcc00; margin: 0 0 16px; }
+  #msg { font-size: 40px; margin: 16px 0; white-space: pre-line; }
+  #sub { font-size: 28px; color: #ccc; margin: 8px 0; }
+  #count { font-size: 64px; margin: 16px 0; }
+  #list button { display: block; width: 80vw; max-width: 900px; margin: 12px auto; font-size: 40px; padding: 16px; background: #222; color: #fff; border: 6px solid #444; border-radius: 10px; font-family: inherit; }
+  #list button.sel { border-color: #ffcc00; background: #2a6f5f; }
+  #keyDbg { position: fixed; right: 12px; bottom: 12px; font-size: 20px; background: #333; color: #0f0; padding: 6px 10px; display: none; }
+  .hide { display: none; }
+</style>
 </head>
 <body>
-<div>読み込んでいます…</div>
+<div id="box">
+  <h1 id="title" class="hide">このテレビで流す店舗を選んでください</h1>
+  <p id="hint" class="hide">上下ボタンで選んで決定ボタン</p>
+  <p id="note" class="hide"></p>
+  <div id="msg">読み込んでいます…</div>
+  <div id="sub" class="hide"></div>
+  <div id="count" class="hide"></div>
+  <div id="list"></div>
+</div>
+<div id="keyDbg"></div>
 <script>
-  location.replace('https://script.google.com/macros/s/AKfycbyvwW1LHg8S6ddtlIIR1V2Yhh5NqTINsfc9zNIEXLgB_LxFMnXF1zcGSo2Q1OHZaiDG/exec?mode=tv');
+  const EXEC = 'https://script.google.com/macros/s/AKfycbyvwW1LHg8S6ddtlIIR1V2Yhh5NqTINsfc9zNIEXLgB_LxFMnXF1zcGSo2Q1OHZaiDG/exec';
+  const KEY = 'keijiTvPick';
+  const $ = function (id) { return document.getElementById(id); };
+
+  // 保存（localStorage は使えない端末があるので全部 try/catch）
+  function storageTest() {
+    try {
+      const k = '__keijiTvTest';
+      window.localStorage.setItem(k, '1');
+      const ok = window.localStorage.getItem(k) === '1';
+      window.localStorage.removeItem(k);
+      return ok;
+    } catch (e) { return false; }
+  }
+  function loadPick() {
+    try {
+      const v = JSON.parse(window.localStorage.getItem(KEY) || 'null');
+      if (v && typeof v.id === 'string' && v.id) return { id: v.id, name: String(v.name || '') };
+    } catch (e) { /* 壊れた保存は無視 */ }
+    return null;
+  }
+  function savePick(p) { try { window.localStorage.setItem(KEY, JSON.stringify({ id: p.id, name: p.name })); } catch (e) { /* 覚えられない */ } }
+  function clearPick() { try { window.localStorage.removeItem(KEY); } catch (e) { /* 何もしない */ } }
+
+  function go(id) { location.replace(EXEC + '?mode=tv&store=' + encodeURIComponent(id)); }
+
+  let state = 'loading';   // 'loading' / 'count' / 'list' / 'gone'
+  let stores = null;       // 取得できた一覧（未取得なら null）
+  let buttons = [];
+  let sel = 0;
+  let readyAt = 0;
+  let countTimer = null;
+  let retryTimer = null;
+  const storageOk = storageTest();
+  const forcePick = /[?&]pick(=|&|$)/.test(location.search);
+  let saved = forcePick ? null : (storageOk ? loadPick() : null);
+
+  function show(id, on) { $(id).className = on ? '' : 'hide'; }
+
+  function stopCount() { clearInterval(countTimer); countTimer = null; }
+
+  function startCount() {
+    state = 'count';
+    let left = 5;
+    $('msg').textContent = saved.name + ' の掲示を流します';
+    $('sub').textContent = '決定ボタンを押すと店舗を選び直せます';
+    $('count').textContent = String(left);
+    show('sub', true); show('count', true);
+    countTimer = setInterval(function () {
+      left--;
+      $('count').textContent = String(Math.max(left, 0));
+      if (left <= 0) { stopCount(); state = 'gone'; go(saved.id); }
+    }, 1000);
+  }
+
+  function toList() {
+    stopCount();
+    state = 'list';
+    show('title', true); show('hint', true);
+    show('sub', false); show('count', false);
+    if (!storageOk) { $('note').textContent = 'このテレビは店舗を覚えられません（電源を入れ直すと選び直しになります）'; show('note', true); }
+    if (stores) renderList(); else { $('msg').textContent = '店舗の一覧を読み込んでいます…'; show('msg', true); }
+  }
+
+  function renderList() {
+    const list = $('list');
+    while (list.firstChild) list.removeChild(list.firstChild);
+    buttons = [];
+    if (!stores || !stores.length) {
+      $('msg').textContent = stores ? '表示できる店舗がありません（1分後にもう一度読み込みます）' : '店舗の一覧を読み込めませんでした（1分後にもう一度読み込みます）';
+      show('msg', true);
+      clearTimeout(retryTimer);
+      retryTimer = setTimeout(fetchStores, 60000);
+      return;
+    }
+    show('msg', false);
+    stores.forEach(function (s, i) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = s.name;   // innerHTML は使わない
+      b.addEventListener('click', function (ev) { ev.stopPropagation(); pick(i); });
+      list.appendChild(b);
+      buttons.push(b);
+    });
+    sel = 0;
+    readyAt = Date.now() + 700;
+    mark();
+  }
+
+  function mark() {
+    buttons.forEach(function (b, i) { b.className = i === sel ? 'sel' : ''; });
+    const b = buttons[sel];
+    if (!b) return;
+    try { b.focus(); } catch (e) { /* 何もしない */ }
+    const r = b.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > window.innerHeight) { try { b.scrollIntoView({ block: 'center' }); } catch (e) { b.scrollIntoView(); } }
+  }
+
+  function pick(i) {
+    if (state !== 'list' || Date.now() < readyAt) return;
+    const s = stores[i];
+    if (!s) return;
+    state = 'gone';
+    savePick({ id: s.id, name: s.name });
+    go(s.id);
+  }
+
+  function fetchStores() {
+    fetch(EXEC + '?mode=stores').then(function (r) { return r.json(); }).then(function (d) {
+      const arr = d && Array.isArray(d.stores) ? d.stores : null;
+      if (!arr) throw new Error('bad');
+      stores = arr.filter(function (s) { return s && typeof s.id === 'string' && s.id; })
+        .map(function (s) { return { id: s.id, name: String(s.name || s.id) }; });
+      if (saved && !stores.some(function (s) { return s.id === saved.id; })) {
+        // 閉店などで保存の店が無い: 保存を消して一覧へ
+        clearPick(); saved = null;
+        if (state === 'count') { toList(); return; }
+      }
+      if (state === 'list') renderList();
+    }).catch(function () {
+      stores = null;
+      if (state === 'list') renderList();   // 失敗文言と再取得。カウント中はそのまま流す
+    });
+  }
+
+  // 実機実験用・後で外す: 押したキー名を右下に約3秒出す
+  let dbgTimer = null;
+  function keyDbg(e) {
+    $('keyDbg').textContent = 'key=' + String(e.key) + ' keyCode=' + String(e.keyCode);
+    $('keyDbg').style.display = 'block';
+    clearTimeout(dbgTimer);
+    dbgTimer = setTimeout(function () { $('keyDbg').style.display = 'none'; }, 3000);
+  }
+
+  function isEnter(e) { return e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66; }
+  function isUp(e) { return e.key === 'ArrowUp' || e.key === 'Up' || e.keyCode === 38; }
+  function isDown(e) { return e.key === 'ArrowDown' || e.key === 'Down' || e.keyCode === 40; }
+
+  document.addEventListener('keydown', function (e) {
+    keyDbg(e);
+    const enter = isEnter(e), up = isUp(e), down = isDown(e);
+    if (!(enter || up || down)) return;
+    e.preventDefault();
+    if (enter && e.repeat) return;
+    if (state === 'count') { if (enter) toList(); return; }
+    if (state !== 'list' || !buttons.length) return;
+    if (up && sel > 0) { sel--; mark(); }
+    else if (down && sel < buttons.length - 1) { sel++; mark(); }
+    else if (enter) pick(sel);
+  });
+  document.addEventListener('click', function () { if (state === 'count') toList(); });
+
+  try { window.focus(); } catch (e) { /* 何もしない */ }
+  fetchStores();
+  if (saved) startCount(); else toList();
 </script>
 </body>
 </html>
