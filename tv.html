@@ -57,7 +57,15 @@
   function savePick(p) { try { window.localStorage.setItem(KEY, JSON.stringify({ id: p.id, name: p.name })); } catch (e) { /* 覚えられない */ } }
   function clearPick() { try { window.localStorage.removeItem(KEY); } catch (e) { /* 何もしない */ } }
 
-  function go(id) { location.replace(EXEC + '?mode=tv&store=' + encodeURIComponent(id)); }
+  // 掲示画面を全画面ではめ込む（GAS を直接開くと上に Google の警告バーが出るため）
+  function go(id) {
+    const f = document.createElement('iframe');
+    f.src = EXEC + '?mode=tv&store=' + encodeURIComponent(id);
+    f.setAttribute('frameborder', '0');
+    f.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;border:0;background:#000;';
+    document.body.appendChild(f);
+    $('box').style.display = 'none';
+  }
 
   let state = 'loading';   // 'loading' / 'count' / 'list' / 'gone'
   let stores = null;       // 取得できた一覧（未取得なら null）
